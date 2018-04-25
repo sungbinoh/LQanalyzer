@@ -21,12 +21,9 @@ class HN_pair_MM : public AnalyzerCore {
   void InitialiseAnalysis() throw( LQError );
   void MakeHistograms();
   void FillCutFlow(TString cut, float w);
-  void RUN_0_fatjet_4_jet(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets,
-			  std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
-  void RUN_1_fatjet_2_jet(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets,
-			  std::vector<snu::KFatJet> fatjets,std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
-  void RUN_2_fatjet_0_jet(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KFatJet> fatjets,
-			  std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
+  void Signal_region_1(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
+  std::vector<snu::KJet> Remove_muon_from_jet(std::vector<snu::KJet> jets, std::vector<snu::KMuon> muons);
+  snu::KJet Clean_jet_lepton(snu::KJet jet, snu::KMuon muon);
   bool JSFatJetID(snu::KFatJet fatjet);
   bool IsAwayFromFatJet(snu::KJet jet, vector<snu::KFatJet> fatjets);
   double GetFRWeight_SB(std::vector<snu::KMuon> muon_looseColl, TString tight_ID);

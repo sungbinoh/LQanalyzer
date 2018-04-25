@@ -32,6 +32,9 @@ HN_pair_MM::HN_pair_MM() :  AnalyzerCore(), out_muons(0)  {
   // This function sets up Root files and histograms Needed in ExecuteEvents
   InitialiseAnalysis();
   MakeCleverHistograms(hnpairmm, "Jet_study");
+  MakeCleverHistograms(hnpairmm, "SR1_MUON_HN_TIGHT");
+  MakeCleverHistograms(hnpairmm, "SR1_MUON_SUSY_TIGHT");
+
 }
 
 
@@ -191,28 +194,180 @@ void HN_pair_MM::ExecuteEvents()throw( LQError ){
   if(!k_isdata){
     pileup_reweight = mcdata_correction->CatPileupWeight(eventbase->GetEvent(),0);
   }
-  weight *= pileup_reweight;
-
+  
+  /////////////////////////////////////////////////////////////////
+  // -- weight = 1.0      to see signal eff
+  /////////////////////////////////////////////////////////////////
+  //weight *= pileup_reweight;
+  weight = pileup_reweight * MCweight; //to see signal eff
   // -- Check if run fake
   bool NonPromptRun = std::find(k_flags.begin(), k_flags.end(), "RunFake") != k_flags.end();
   
-  TString muon_tight_id = "MUON_HN_LOOSEv7_SIP3";
-  TString muon_loose_id = "MUON_HN_TIGHT";
+  TString muon_tight_id = "MUON_HN_TIGHT";
+  TString muon_loose_id = "MUON_HN_LOOSEv7_SIP3";
 
-  /*
-  if(N_fatjet == 0 && N_jet > 3) RUN_0_fatjet_4_jet(muon_tight_id, muon_loose_id, mu50_pass, jets, electrons_veto, NonPromptRun);
-  else if(N_fatjet == 1 && N_jet > 1) RUN_1_fatjet_2_jet(muon_tight_id, muon_loose_id, mu50_pass, jets, fatjets, electrons_veto, NonPromptRun);
-  else if(N_fatjet > 1) RUN_2_fatjet_0_jet(muon_tight_id, muon_loose_id, mu50_pass, fatjets, electrons_veto, NonPromptRun);
-  else return;
-  */
+  TString muon_susy_id = "MUON_SUSY_TIGHT";
+
 
   if(mu50_pass){
     FillCLHist(hnpairmm, "Jet_study", eventbase->GetEvent(), muons_veto, electrons_veto, jets_nolepveto, weight, 0);
   }
+  
+  Signal_region_1(muon_tight_id, muon_loose_id, mu50_pass, jets_nolepveto, electrons_veto, false);
+  Signal_region_1(muon_susy_id, muon_loose_id, mu50_pass, jets_nolepveto, electrons_veto, false);
 
   return;
 }// End of execute event loop
 
+void HN_pair_MM::Signal_region_1(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons_veto, bool NonPromptRun){
+  
+  bool debug = false;
+  
+  if(debug) cout << "1" << endl;
+  
+  if(!trigger_pass) return;
+  if(jets.size() < 4) return;
+  std::vector<snu::KMuon> muon_Nocut = GetMuons("MUON_NOCUT",true);
+  std::vector<snu::KMuon> muons;
+  for(int i = 0; i < muon_Nocut.size(); i++){
+    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));
+    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));//store loose muon for fake bkg
+  }
+  
+  // -- return if Nmuon != 2
+  int Nmuons;
+  Nmuons = muons.size();
+  if(Nmuons != 2) return;
+
+  
+  
+  // -- return ! Pt(1st muon) > 53 GeV && Pt(2nd muon) > 20 GeV
+  double mu_1st_pt, mu_2nd_pt;
+  mu_1st_pt = muons.at(0).Pt();
+  mu_2nd_pt = muons.at(1).Pt();
+  if(mu_1st_pt < 53 || mu_2nd_pt < 20) return;
+
+  if(debug) cout << "2"<< endl;
+
+ 
+  // -- get lepton cleaned jet collection and apply pt > 30 cut again
+  std::vector<snu::KJet> cleaned_jets;
+  cleaned_jets = Remove_muon_from_jet(jets, muons);
+
+  if(debug) cout << "3" << endl;
+
+
+  std::vector<snu::KJet> jets_pt30;
+  for(int i = 0; i < cleaned_jets.size(); i++){
+    if(cleaned_jets.at(i).Pt() > 30) jets_pt30.push_back(cleaned_jets.at(i));
+  }
+
+  if(jets_pt30.size() <4) return;
+  
+
+  // -- So far, we have lepton cleaned jets, and muons as jets_pt30, muons 
+  
+
+  // -- Call additional Weights & SFs
+  double trigger_eff_Data = mcdata_correction->TriggerEfficiencyLegByLeg(electrons_veto, "", muons, "MUON_HN_TIGHT", 0, 0, 0);
+  double trigger_eff_MC = mcdata_correction->TriggerEfficiencyLegByLeg(electrons_veto, "", muons, "MUON_HN_TIGHT", 0, 1, 0);
+  double trigger_sf = trigger_eff_Data/trigger_eff_MC;
+  
+  double muon_id_iso_sf = mcdata_correction->MuonScaleFactor("muon_tight_id", muons, 0);
+  double MuTrkEffSF = mcdata_correction->MuonTrackingEffScaleFactor(muons);
+  
+  double current_weight = weight;
+  if(!isData){
+    //current_weight = current_weight * trigger_sf * muon_id_iso_sf * MuTrkEffSF; // No SFs so far
+  }
+  
+  if(NonPromptRun){
+    double FR_weight = GetFRWeight_SB(muons, muon_tight_id);
+    current_weight = FR_weight;
+  }
+  
+  FillCLHist(hnpairmm, "SR1_" + muon_tight_id, eventbase->GetEvent(), muons, electrons_veto, jets_pt30, current_weight, 0);
+  
+}
+
+std::vector<snu::KJet> HN_pair_MM::Remove_muon_from_jet(std::vector<snu::KJet> jets, std::vector<snu::KMuon> muons){
+  //this function removes muon's 4 momentum from Non-lepton veto jet's 4 momentum if muon is inside of it (dR < 0.4)
+  
+  if(muons.size() != 2) return jets;
+  
+  std::vector<snu::KJet> cleaned_jets;  
+  int index_closest_jet_mu_1, index_closest_jet_mu_2;
+  double dR_min_mu1 = 999., dR_min_mu2 = 999.;
+  bool mu_1_inside_jet = false;
+  bool mu_2_inside_jet = false;
+  for(int i = 0; i < jets.size(); i++){
+    double current_dR_mu1 = jets.at(i).DeltaR(muons.at(0));
+    double current_dR_mu2 = jets.at(i).DeltaR(muons.at(1));
+    if(current_dR_mu1 < dR_min_mu1){
+      index_closest_jet_mu_1 = i;
+      dR_min_mu1 = current_dR_mu1;
+    }
+    if(current_dR_mu2 < dR_min_mu2){
+      index_closest_jet_mu_2 = i;
+      dR_min_mu2 = current_dR_mu2;
+    }
+  }
+  
+  if(dR_min_mu1 < 0.4) mu_1_inside_jet = true;
+  if(dR_min_mu2 < 0.4) mu_2_inside_jet = true;
+  
+  bool from_same_jet = (index_closest_jet_mu_1 == index_closest_jet_mu_2);//two leptons are from same AK4jet
+  
+  if(from_same_jet){//when two muons are from same jet
+    for(int i = 0; i < jets.size(); i++){
+      if(i == index_closest_jet_mu_1){
+	snu::KJet jet_mu1;
+	if(mu_1_inside_jet) jet_mu1 = Clean_jet_lepton(jets.at(i), muons.at(0));
+	else jet_mu1 = jets.at(i);
+	
+	snu::KJet jet_mu2;
+	if(mu_2_inside_jet) jet_mu2 = Clean_jet_lepton(jet_mu1, muons.at(1));
+	else jet_mu2 = jet_mu1;
+	
+	cleaned_jets.push_back(jet_mu2);
+      }
+      else cleaned_jets.push_back(jets.at(i));
+    }
+
+    return cleaned_jets;
+  }
+  else if(mu_1_inside_jet || mu_2_inside_jet){
+    for(int i = 0; i < jets.size(); i++){
+      if(i == index_closest_jet_mu_1 && mu_1_inside_jet){
+	snu::KJet jet_mu1;
+	jet_mu1 = Clean_jet_lepton(jets.at(i), muons.at(0));
+	cleaned_jets.push_back(jet_mu1);
+      }
+      else if(i == index_closest_jet_mu_2 && mu_2_inside_jet){
+	snu::KJet jet_mu2;
+	jet_mu2 = Clean_jet_lepton(jets.at(i), muons.at(1));
+	cleaned_jets.push_back(jet_mu2);
+      }
+      else cleaned_jets.push_back(jets.at(i));
+    }
+    
+    return cleaned_jets;
+  }
+  else return jets;
+
+}
+
+snu::KJet HN_pair_MM::Clean_jet_lepton(snu::KJet jet, snu::KMuon muon){
+  double energy = jet.E() - muon.E();
+  double phi = ( jet.E() * jet.Phi() - muon.E() * muon.Phi() ) / energy;
+  double eta = ( jet.E() * jet.Eta() - muon.E() * muon.Eta() ) / energy;
+  double cos_theta = TMath::CosH(eta);
+  double momentum = TMath::Sqrt( energy * energy - jet.M() * jet.M() );//keep mass of jet as its original's one
+  double Pt = momentum * cos_theta;
+  jet.SetPtEtaPhiE(Pt, eta, phi, energy);
+  
+  return jet;
+}
 
 void HN_pair_MM::EndCycle()throw( LQError ){
   
