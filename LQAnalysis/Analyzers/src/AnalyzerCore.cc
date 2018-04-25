@@ -2185,6 +2185,19 @@ std::vector<snu::KElectron> AnalyzerCore::GetElectrons(bool keepcf, bool keepfak
 
 }
 
+bool AnalyzerCore::HasLeptonInsideJet(snu::KJet jet, std::vector<snu::KMuon> mus, std::vector<snu::KElectron> els){
+
+
+  for(unsigned int i=0; i<mus.size(); i++){
+    if( jet.DeltaR( mus.at(i) ) < 0.4 ) return true;
+  }
+  for(unsigned int i=0; i<els.size(); i++){
+    if( jet.DeltaR( els.at(i) ) < 0.4 ) return true;
+  }
+
+  return false;
+
+}
 
 
 

@@ -15,6 +15,19 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["h_Nelectrons"]             =     new TH1D("h_Nelectrons_"           + name,"number of el",5,0,5);
   map_sig["h_nVertices"]              =     new TH1D("h_nVertices_"         + name,"number of even vertices",60,0.0,60.0);
   
+  //Jet study
+  map_sig["Njet_1_jet_1_Pt"]          =     new TH1D("Njet_1_jet_1_Pt" + name, "1st jet pt Njet=1", 400, 0.0, 2000.0); 
+  map_sig["Njet_2_jet_1_Pt"]          =     new TH1D("Njet_2_jet_1_Pt" + name, "1st jet pt Njet=2", 400, 0.0, 2000.0);
+  map_sig["Njet_2_jet_2_Pt"]          =     new TH1D("Njet_2_jet_2_Pt" + name, "2nd jet pt Njet=2", 400, 0.0, 2000.0);
+  map_sig["Njet_3_jet_1_Pt"]          =     new TH1D("Njet_3_jet_1_Pt" + name, "1st jet pt Njet=3", 400, 0.0, 2000.0);
+  map_sig["Njet_3_jet_2_Pt"]          =     new TH1D("Njet_3_jet_2_Pt" + name, "2nd jet pt Njet=3", 400, 0.0, 2000.0);
+  map_sig["Njet_3_jet_3_Pt"]          =     new TH1D("Njet_3_jet_3_Pt" + name, "3rd jet pt Njet=3", 400, 0.0, 2000.0);
+  map_sig["Njet_4_jet_1_Pt"]          =     new TH1D("Njet_4_jet_1_Pt" + name, "1st jet pt Njet=4", 400, 0.0, 2000.0);
+  map_sig["Njet_4_jet_2_Pt"]          =     new TH1D("Njet_4_jet_2_Pt" + name, "2nd jet pt Njet=4", 400, 0.0, 2000.0);
+  map_sig["Njet_4_jet_3_Pt"]          =     new TH1D("Njet_4_jet_3_Pt" + name, "3rd jet pt Njet=4", 400, 0.0, 2000.0);
+  map_sig["Njet_4_jet_4_Pt"]          =     new TH1D("Njet_4_jet_4_Pt" + name, "4th jet pt Njet=4", 400, 0.0, 2000.0);
+
+
   //OS CR
   map_sig["h_llmass_OS"]              =     new TH1D("h_OS_llmass_"          + name,"Invariant mass of the two leading os leptons",100,0,500);
   map_sig["h_leadingLeptonPt_OS"]     =     new TH1D("h_OS_leadingLeptonPt_"   + name,"leading lepton pt",100,0,500);
@@ -92,6 +105,31 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
   Fill("h_nVertices", ev.nVertices(), weight);
   Fill("h_Nbjets", nbjet, weight);  
   Fill("h_Njets", jets.size(), weight);
+  
+  int Njet = jets.size();
+  if(Njet == 1){
+    Fill("Njet_1_jet_1_Pt", jets[0].Pt(), weight);
+  }
+  else if(Njet == 2){
+    Fill("Njet_2_jet_1_Pt", jets[0].Pt(), weight);
+    Fill("Njet_2_jet_2_Pt", jets[1].Pt(), weight);
+  }
+  else if(Njet == 3){
+    Fill("Njet_3_jet_1_Pt", jets[0].Pt(), weight);
+    Fill("Njet_3_jet_2_Pt", jets[1].Pt(), weight);
+    Fill("Njet_3_jet_3_Pt", jets[2].Pt(), weight);
+  }
+  else if(Njet > 3){
+    Fill("Njet_4_jet_1_Pt", jets[0].Pt(), weight);
+    Fill("Njet_4_jet_2_Pt", jets[1].Pt(), weight);
+    Fill("Njet_4_jet_3_Pt", jets[2].Pt(), weight);
+    Fill("Njet_4_jet_4_Pt", jets[3].Pt(), weight);
+  }
+  else{
+    Fill("Nojet", 1.5, weight);
+  }
+
+
   
   //cout << "Fill N_s pass" << endl;
   
