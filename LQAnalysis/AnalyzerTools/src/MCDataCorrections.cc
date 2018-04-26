@@ -433,11 +433,17 @@ double MCDataCorrections::MuonScaleFactor(TString muid, vector<snu::KMuon> mu,in
 
     double WeightBtoF = (lumi_periodB+lumi_periodC+lumi_periodD+lumi_periodE+lumi_periodF)/total_lumi;
     double WeightGtoH = (lumi_periodG+lumi_periodH)/total_lumi;
-    double SF_bf= MuonScaleFactorPeriodDependant(muid,mu, 1, sys);
-    double SF_gh= MuonScaleFactorPeriodDependant(muid,mu, 7, sys);
-
-    double SF_weight = WeightBtoF*SF_bf + WeightGtoH*SF_gh;
-    return SF_weight;
+    if(muid.Contains("SUSY")){
+      double SF_bh =  MuonScaleFactorPeriodDependant(muid,mu, 1, sys);
+      return SF_bh;
+    }
+    else{
+      double SF_bf= MuonScaleFactorPeriodDependant(muid,mu, 1, sys);
+      double SF_gh= MuonScaleFactorPeriodDependant(muid,mu, 7, sys);
+      
+      double SF_weight = WeightBtoF*SF_bf + WeightGtoH*SF_gh;
+      return SF_weight;
+    }
   }
   return MuonScaleFactorPeriodDependant(muid, mu, k_period, sys);
 
@@ -452,9 +458,11 @@ double MCDataCorrections::MuonScaleFactorPeriodDependant(TString muid, vector<sn
   // ref https://indico.cern.ch/event/595070/contributions/2405095/attachments/1388822/2114847/MC_12_12_2016.pdf
 
   TString tag = "";
-  if(cat_period < 6) tag = "_BCDEF";
-  else tag = "_GH";
-
+  if(muid.Contains("SUSY")) tag = "_BtoH";
+  else{
+    if(cat_period < 6) tag = "_BCDEF";
+    else tag = "_GH";
+  }
   double min_pt = 20., max_pt = 120.;
   
   if(mu.size() == 0) return 1.;
@@ -465,9 +473,14 @@ double MCDataCorrections::MuonScaleFactorPeriodDependant(TString muid, vector<sn
     if(itmu->MiniAODPt() >= max_pt) mupt = max_pt-1.;
 
     if(CheckCorrectionHist("ID" +tag+ "_"+ muid)){
-      sferr = double(sys)*GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinError( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( fabs(itmu->Eta()), mupt) );
-      
-      sf*=  (1. + sferr)* GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinContent( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( fabs(itmu->Eta()), mupt) );
+      if(muid.Contains("SUSY")){ 
+	sferr = double(sys)*GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinError( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( mupt, fabs(itmu->Eta()) ) );
+	sf*=  (1. + sferr)* GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinContent( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( mupt, fabs(itmu->Eta()) ) );
+      }
+      else{
+	sferr = double(sys)*GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinError( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( fabs(itmu->Eta()), mupt) );
+	sf*=  (1. + sferr)* GetCorrectionHist("ID" +tag+ "_"+ muid)->GetBinContent( GetCorrectionHist("ID" +tag+ "_"+ muid)->FindBin( fabs(itmu->Eta()), mupt) );
+      }
     }
   }
 

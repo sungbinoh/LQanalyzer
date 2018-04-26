@@ -22,6 +22,7 @@ class HN_pair_MM : public AnalyzerCore {
   void MakeHistograms();
   void FillCutFlow(TString cut, float w);
   void Signal_region_1(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
+  void Control_region_1(TString muon_tight_id, TString muon_loose_id, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons_veto, bool NonPromptRun);
   std::vector<snu::KJet> Remove_muon_from_jet(std::vector<snu::KJet> jets, std::vector<snu::KMuon> muons);
   snu::KJet Clean_jet_lepton(snu::KJet jet, snu::KMuon muon);
   bool JSFatJetID(snu::KFatJet fatjet);
