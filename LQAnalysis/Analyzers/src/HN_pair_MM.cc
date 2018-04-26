@@ -134,7 +134,7 @@ void HN_pair_MM::ExecuteEvents()throw( LQError ){
   bool dimu_pass = PassTriggerOR(trignames);
   bool mu50_pass = PassTrigger("HLT_Mu50_v");
   //cout << "dimu_pass : " << dimu_pass << ". mu50_pass ; " << mu50_pass << endl;
-  if(mu50_pass) cout << "mu50_pass" << endl;
+  //if(mu50_pass) cout << "mu50_pass" << endl;
   
   // -- Get Veto Electrons, return if there is veto electron
   std::vector<snu::KElectron> electrons_veto = GetElectrons("ELECTRON_HN_VETO");
@@ -284,7 +284,7 @@ void HN_pair_MM::Signal_region_1(TString muon_tight_id, TString muon_loose_id, b
   
   double muon_id_iso_sf = mcdata_correction->MuonScaleFactor(muon_tight_id, muons, 0);
   double MuTrkEffSF = mcdata_correction->MuonTrackingEffScaleFactor(muons);
-  cout << muon_tight_id << ", muon_1_pt : " << muons.at(0).Pt() << ", muon_2_pt : " << muons.at(1).Pt() << ", id_sf : " << muon_id_iso_sf << endl;
+  //cout << muon_tight_id << ", muon_1_pt : " << muons.at(0).Pt() << ", muon_2_pt : " << muons.at(1).Pt() << ", id_sf : " << muon_id_iso_sf << endl;
   
   double current_weight = weight;
   if(!isData){
