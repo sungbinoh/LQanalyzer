@@ -19,6 +19,7 @@
 #pragma link C++ class FakeRateCalculator_Mu+;
 #pragma link C++ class FakeRateCalculator_FinalMu+;
 #pragma link C++ class HN_pair_MM+;
+#pragma link C++ class HN_pair_all+;
 #pragma link C++ class CF_MC+;
 #pragma link C++ class FakeRateMC+;
 #pragma link C++ class HNEMu+;

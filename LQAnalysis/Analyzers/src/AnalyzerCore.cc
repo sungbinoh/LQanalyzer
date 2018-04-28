@@ -3764,14 +3764,14 @@ void AnalyzerCore::FillCLHist(histtype type, TString hist, vector<snu::KJet> jet
   else  m_logger << INFO  <<"Type not set to jethist, is this a mistake?" << LQLogger::endmsg;
 
 }
-void AnalyzerCore::FillCLHist(histtype type, TString hist, snu::KEvent ev,vector<snu::KMuon> muons, vector<snu::KElectron> electrons, vector<snu::KJet> jets,double w, int nbjet){
+void AnalyzerCore::FillCLHist(histtype type, TString hist, snu::KEvent ev, std::vector<KLepton> Leptons, int N_electron, int N_muon, vector<snu::KJet> jets, double w, int nbjet){
   if(type==hnpairmm){
     map<TString, HNpairPlotsMM*>::iterator HNpairmmit = mapCLhistHNpairMM.find(hist);
-    if(HNpairmmit !=mapCLhistHNpairMM.end()) HNpairmmit->second->Fill(ev, muons, electrons, jets, w, nbjet);
+    if(HNpairmmit !=mapCLhistHNpairMM.end()) HNpairmmit->second->Fill(ev, Leptons, N_electron, N_electron, jets, w, nbjet);
     else {
       mapCLhistHNpairMM[hist] = new HNpairPlotsMM(hist);
       HNpairmmit = mapCLhistHNpairMM.find(hist);
-      HNpairmmit->second->Fill(ev, muons, electrons, jets, w, nbjet);
+      HNpairmmit->second->Fill(ev, Leptons, N_electron, N_electron, jets, w, nbjet);
     }
   }
 }

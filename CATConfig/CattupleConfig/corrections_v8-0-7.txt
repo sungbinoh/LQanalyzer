@@ -20,6 +20,7 @@
 ### ISO_GH_MUON_POG_LOOSE IDFILEDIR EfficienciesAndSF_ISO_GH.root LooseISO_LooseID_pt_eta/abseta_pt_ratio TH2F
 ### ISO_GH_MUON_POG_TIGHT IDFILEDIR EfficienciesAndSF_ISO_GH.root TightISO_TightID_pt_eta/abseta_pt_ratio TH2F
 ### ID_BtoH_MUON_SUSY_TIGHT IDFILEDIR TnP_NUM_MiniIsoTight_DENOM_MediumID_VAR_map_pt_eta.root SF TH2F
+### ID_ELECTRON_SUSY_TIGHT IDFILEDIR scaleFactors.root MVAVLooseElectronToMini TH2F
 ### MUON_MU24_TRIGGER_BCDEF  TRIGGERFILEDIR EfficienciesAndSF_RunBtoF.root IsoMu24_OR_IsoTkMu24_PtEtaBins/abseta_pt_ratio TH2F
 ### MUON_MU24_TRIGGER_GH  TRIGGERFILEDIR EfficienciesAndSF_Period4.root IsoMu24_OR_IsoTkMu24_PtEtaBins/abseta_pt_ratio TH2F
 ### MUON_MU50_TRIGGER_BCDEF  TRIGGERFILEDIR EfficienciesAndSF_RunBtoF.root	Mu50_OR_TkMu50_PtEtaBins/abseta_pt_ratio TH2F

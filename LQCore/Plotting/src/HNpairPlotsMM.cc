@@ -97,11 +97,11 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
 }
 
 
-void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::vector<snu::KElectron>& electrons, std::vector<snu::KJet>& jets, Double_t weight, int nbjet) {
+void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_electron, int N_muon, std::vector<snu::KJet>& jets, Double_t weight, int nbjet) {
   
   //int nbjet = NBJet(jets);
-  Fill("h_Nmuons" ,muons.size(), weight);
-  Fill("h_Nelectrons" ,electrons.size(), weight);
+  Fill("h_Nmuons" , N_muon, weight);
+  Fill("h_Nelectrons" , N_electron, weight);
   Fill("h_nVertices", ev.nVertices(), weight);
   Fill("h_Nbjets", nbjet, weight);  
   Fill("h_Njets", jets.size(), weight);
@@ -133,8 +133,7 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
   
   //cout << "Fill N_s pass" << endl;
   
-  if(muons.size() != 2) return;
-  if(electrons.size() != 0) return;
+  if(Leptons.size() != 2) return;
   //cout << "n_lepton cut pass" << endl;
   //cout << "Nmuon : " << muons.size() << endl;
   //cout << "Ne : " << electrons.size() << endl;
@@ -147,22 +146,22 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
     float min_del_R_mu1j = 9999.;
     float min_del_R_mu2j = 9999.;
     for(int j1 = 0; j1 < 4; j1 ++){
-      if(muons[0].DeltaR(jets[j1]) < min_del_R_mu1j) min_del_R_mu1j = muons[0].DeltaR(jets[j1]);
-      if(muons[1].DeltaR(jets[j1]) < min_del_R_mu2j) min_del_R_mu2j = muons[1].DeltaR(jets[j1]);
+      if(Leptons[0].DeltaR(jets[j1]) < min_del_R_mu1j) min_del_R_mu1j = Leptons[0].DeltaR(jets[j1]);
+      if(Leptons[1].DeltaR(jets[j1]) < min_del_R_mu2j) min_del_R_mu2j = Leptons[1].DeltaR(jets[j1]);
       
       for(int j2 = 0; j2 < 4; j2 ++){
 	snu::KParticle all_jet = jets[0] + jets[1] + jets[2] + jets[3];
-	snu::KParticle current_HN1 = muons[0] + jets[j1] + jets[j2];
+	snu::KParticle current_HN1 = Leptons[0] + jets[j1] + jets[j2];
 	all_jet = all_jet - jets[j1] - jets[j2];
-	snu::KParticle current_HN2 = muons[1] + all_jet;
+	snu::KParticle current_HN2 = Leptons[1] + all_jet;
 	
 	if(fabs(current_HN1.M() - current_HN2.M()) < min_del_HNHN && j1 != j2){
 	  min_del_HNHN = fabs(current_HN1.M() - current_HN2.M());
 	  HN_1 = current_HN1;
 	  HN_2 = current_HN2;
 	}
-	current_HN1 = muons[0] + all_jet;
-	current_HN2 = muons[1] + jets[j1] + jets[j2];
+	current_HN1 = Leptons[0] + all_jet;
+	current_HN2 = Leptons[1] + jets[j1] + jets[j2];
 	if(fabs(current_HN1.M() - current_HN2.M()) < min_del_HNHN && j1 != j2){
 	  min_del_HNHN = fabs(current_HN1.M() - current_HN2.M());
 	  HN_1 = current_HN1;
@@ -183,19 +182,19 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
   //cout << "reconstruction HNs pass" << endl;
   
   //OS
-  if(muons[0].Charge() != muons[1].Charge()){
+  if(Leptons[0].Charge() != Leptons[1].Charge()){
     //CR
-    Fill("h_llmass_OS", (muons[0]+muons[1]).M(), weight);    
-    Fill("h_leadingLeptonPt_OS", muons[0].Pt(), weight);
-    Fill("h_secondLeptonPt_OS", muons[1].Pt(), weight);
-    Fill("h_leadingLeptonEta_OS", muons[0].Eta(), weight);
-    Fill("h_secondLeptonEta_OS", muons[1].Eta(), weight);
+    Fill("h_llmass_OS", (Leptons[0]+Leptons[1]).M(), weight);    
+    Fill("h_leadingLeptonPt_OS", Leptons[0].Pt(), weight);
+    Fill("h_secondLeptonPt_OS", Leptons[1].Pt(), weight);
+    Fill("h_leadingLeptonEta_OS", Leptons[0].Eta(), weight);
+    Fill("h_secondLeptonEta_OS", Leptons[1].Eta(), weight);
     Fill("h_PFMET_OS", ev.PFMET(), weight);             
     Fill("h_PFMET_phi_OS", ev.METPhi(snu::KEvent::pfmet), weight);         
     Fill("h_Njets_OS", jets.size(), weight);             
     Fill("h_Nbjets_OS",nbjet, weight);             
-    Fill("h_Nmuons_OS", muons.size(), weight);             
-    Fill("h_Nelectrons_OS", electrons.size(), weight);         
+    Fill("h_Nmuons_OS", N_muon, weight);             
+    Fill("h_Nelectrons_OS", N_electron, weight);         
     Fill("h_nVertices_OS", ev.nVertices(), weight);
 
     //cout << "OS not njet pass" << endl;
@@ -214,7 +213,7 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
     
     //SR
     if(jets.size() > 3){
-      snu::KParticle Zp = muons[0] + muons[1] + jets[0] + jets[1] + jets[2] + jets[3];
+      snu::KParticle Zp = Leptons[0] + Leptons[1] + jets[0] + jets[1] + jets[2] + jets[3];
       Fill("h_lljjjjmass_OS", Zp.M(), weight);
       Fill("h_lljjjjpt_OS", Zp.Pt(), weight);
       Fill("h_lljjjjeta_OS", Zp.Eta(), weight);
@@ -232,19 +231,19 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
   
     
   //SS
-  if(muons[0].Charge() == muons[1].Charge()){
+  if(Leptons[0].Charge() == Leptons[1].Charge()){
     //CR
-    Fill("h_llmass_SS", (muons[0]+muons[1]).M(), weight);
-    Fill("h_leadingLeptonPt_SS", muons[0].Pt(), weight);
-    Fill("h_secondLeptonPt_SS", muons[1].Pt(), weight);
-    Fill("h_leadingLeptonEta_SS", muons[0].Eta(), weight);
-    Fill("h_secondLeptonEta_SS", muons[1].Eta(), weight);
+    Fill("h_llmass_SS", (Leptons[0]+Leptons[1]).M(), weight);
+    Fill("h_leadingLeptonPt_SS", Leptons[0].Pt(), weight);
+    Fill("h_secondLeptonPt_SS", Leptons[1].Pt(), weight);
+    Fill("h_leadingLeptonEta_SS", Leptons[0].Eta(), weight);
+    Fill("h_secondLeptonEta_SS", Leptons[1].Eta(), weight);
     Fill("h_PFMET_SS", ev.PFMET(), weight);
     Fill("h_PFMET_phi_SS", ev.METPhi(snu::KEvent::pfmet), weight);
     Fill("h_Njets_SS", jets.size(), weight);
     Fill("h_Nbjets_SS",nbjet, weight);
-    Fill("h_Nmuons_SS", muons.size(), weight);
-    Fill("h_Nelectrons_SS", electrons.size(), weight);
+    Fill("h_Nmuons_SS", N_muon, weight);
+    Fill("h_Nelectrons_SS", N_electron, weight);
     Fill("h_nVertices_SS", ev.nVertices(), weight);
     if(jets.size() > 0){
       Fill("h_leadingjet_pt_SS", jets[0].Pt(), weight);
@@ -256,7 +255,7 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons, std::ve
     }
     //SR
     if(jets.size() > 3){
-      snu::KParticle Zp = muons[0] + muons[1] + jets[0] + jets[1] + jets[2] + jets[3];
+      snu::KParticle Zp = Leptons[0] + Leptons[1] + jets[0] + jets[1] + jets[2] + jets[3];
       Fill("h_lljjjjmass_SS", Zp.M(), weight);
       Fill("h_lljjjjpt_SS", Zp.Pt(), weight);
       Fill("h_lljjjjeta_SS", Zp.Eta(), weight);

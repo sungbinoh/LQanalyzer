@@ -1502,9 +1502,17 @@ double MCDataCorrections::ElectronScaleFactor( TString elid, vector<snu::KElectr
     if(elpt>=500.) elpt= 499.;
     if(elpt <10.) elpt= 11;
     
+    if(elid.Contains("SUSY")){
+      if(elpt>=200.) elpt= 199.;
+    }
+    
     if(CheckCorrectionHist("ID_" + elid)){
       TH2F *this_hist = GetCorrectionHist("ID_" + elid);
       int this_bin = this_hist->FindBin(eleta, elpt);
+      if(elid.Contains("SUSY")){
+	this_bin = this_hist->FindBin(elpt, eleta);
+      }
+      
       double this_sf = this_hist->GetBinContent(this_bin);
       double this_sf_err = this_hist->GetBinError(this_bin);
 
