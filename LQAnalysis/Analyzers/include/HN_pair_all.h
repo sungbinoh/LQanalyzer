@@ -23,6 +23,7 @@ class HN_pair_all : public AnalyzerCore {
   void FillCutFlow(TString cut, float w);
   void Signal_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
   void Control_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
+  void Control_region_2(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
   std::vector<snu::KJet> Remove_lepton_from_jet(std::vector<snu::KJet> jets, std::vector<KLepton> Leptons);
   snu::KJet Clean_jet_lepton(snu::KJet jet, KLepton Lepton);
   bool JSFatJetID(snu::KFatJet fatjet);
