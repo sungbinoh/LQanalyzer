@@ -106,9 +106,6 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   /// Apply the gen weight 
   if(!isData) weight*=MCweight;
   
-  FillHist("signal_eff", 1.5, 1., 0., 10., 10); //after lepton skim
-  
-  //return;
   m_logger << DEBUG << "RunNumber/Event Number = "  << eventbase->GetEvent().RunNumber() << " : " << eventbase->GetEvent().EventNumber() << LQLogger::endmsg;
   m_logger << DEBUG << "isData = " << isData << LQLogger::endmsg;
   
@@ -136,20 +133,24 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   }
   if(has_Nmix) return;
   
-  FillCutFlow("NoCut", weight * 35863.3);
+  //FillCutFlow("NoCut", weight * 35863.3);
+  FillCutFlow("NoCut", weight);
   
+  FillHist("signal_eff", 0.5, weight * 35863.3, 0., 30., 30); //after lepton skim
+  
+
   if(isData) FillHist("Nvtx_nocut_data",  eventbase->GetEvent().nVertices() ,weight, 0. , 50., 50);
   else  FillHist("Nvtx_nocut_mc",  eventbase->GetEvent().nVertices() ,weight, 0. , 50., 50);
   
   ///#### CAT:::PassBasicEventCuts is updated: uses selections as described in https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFilters: If you see this is out of date please comment
   if(!PassMETFilter()) return;     /// Initial event cuts :
   FillCutFlow("EventCut", weight);
-  FillHist("signal_eff", 2.5, 1., 0., 10., 10); //after PassMETFilter
+  FillHist("signal_eff", 1.5, weight * 35863.3, 0., 30., 30); //after PassMETFilter
   
   
   /// #### CAT::: triggers stored are all HLT_Ele/HLT_DoubleEle/HLT_Mu/HLT_TkMu/HLT_Photon/HLT_DoublePhoton
   if (!eventbase->GetEvent().HasGoodPrimaryVertex()) return; //// Make cut on event wrt vertex
-  FillHist("signal_eff", 3.5, 1., 0., 10., 10); //after good primary vtx cut
+  FillHist("signal_eff", 2.5, weight * 35863.3, 0., 30., 30); //after good primary vtx cut
   
   m_logger << DEBUG << "passedTrigger "<< LQLogger::endmsg;
 
@@ -166,6 +167,10 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   bool mu50_pass = PassTriggerOR(mu50_trignames); // for mumu and emu channel
   bool diele_pass = PassTrigger(diele_trig1); // for ee channel
 
+  if(mu50_pass)  FillHist("signal_eff", 3.5, weight * 35863.3, 0., 30., 30);
+  if(diele_pass)  FillHist("signal_eff", 4.5, weight * 35863.3, 0., 30., 30);
+
+
   if(!mu50_pass && !diele_pass) return;
   //cout << "dimu_pass : " << dimu_pass << ". mu50_pass ; " << mu50_pass << endl;
   //if(mu50_pass) cout << "mu50_pass" << endl;
@@ -175,10 +180,22 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   int N_veto_ele = electrons_veto.size();
   
   // -- Get Veto Muons, return if there are not exactly two veto muons
-  std::vector<snu::KMuon> muons_veto = GetMuons("MUON_HN_VETO");
+  std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
+  std::vector<snu::KMuon> muons_veto;
+  for(int i = 0; i < muons_susy_veto.size(); i++){
+    if( muons_susy_veto.at(i).RelMiniIso() < 0.40 ) muons_veto.push_back(muons_susy_veto.at(i));
+  }
   CorrectedMETRochester(muons_veto);
   int N_veto_muon = muons_veto.size();
   
+  // -- Get AK8 jets
+  std::vector<snu::KFatJet> fatjets_loosest_UnSmeared = GetFatJets("FATJET_HN_nolepveto");
+  std::vector<snu::KFatJet> fatjets_loosest = GetCorrectedFatJet(fatjets_loosest_UnSmeared); // Smear both energy and mass
+  std::vector<snu::KFatJet> fatjets;
+  for(int i_fat = 0; i_fat < fatjets_loosest.size(); i_fat++){
+    snu::KFatJet this_jet = fatjets_loosest.at(i_fat);
+    if(JSFatJetID(this_jet) && this_jet.Pt() >= 300.) fatjets.push_back(this_jet);
+  }
   
   // -- Get AK4 jets
   std::vector<snu::KJet> jets_eta5_nolepveto_loosest = GetJets("JET_HN_eta5_nolepveto", 30., 5.);
@@ -190,22 +207,15 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     snu::KJet this_jet = jets_eta5_nolepveto_loosest.at(i_jet);
     bool PassPUID = this_jet.PassPileUpMVA("Loose");
     bool IsNormalJet = fabs( this_jet.Eta() ) < NormalJetMaxEta;
+    bool AwayFromFatJet = IsAwayFromFatJet(this_jet, fatjets);
     //bool lepinside = HasLeptonInsideJet(this_jet, muons_veto, electrons_veto);
     
-    if(IsNormalJet && PassPUID) jets_nolepveto.push_back( this_jet ); // normal jets without lepton veto & fatjet veto
+    if(IsNormalJet && PassPUID && AwayFromFatJet) jets_nolepveto.push_back( this_jet ); // normal jets without lepton veto & fatjet veto
   }
   
-
+  
   // -- Get size of jets
   int N_jet = jets_nolepveto.size();
-  
-  
-  // -- call truth particles
-  //std::vector<snu::KTruth> truthColl;
-  //eventbase->GetTruthSel()->Selection(truthColl);
-  
-  
-  FillHist("signal_eff", 4.5, 1., 0., 10., 10); //after tirgger
   
   // -- Call MET
   float MET = eventbase->GetEvent().PFMET();
@@ -268,33 +278,34 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   //cout << "---------------" << endl;
   //cout << "weight : " << weight << endl;
   
-  Signal_region_1("DiMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Signal_region_1("EMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Signal_region_1("DiEle", diele_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Signal_region_1("DiMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Signal_region_1("EMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Signal_region_1("DiEle", diele_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   
-  Control_region_1("DiMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Control_region_1("EMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Control_region_1("DiEle", diele_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_1("DiMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_1("EMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_1("DiEle", diele_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   
-  Control_region_2("DiMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Control_region_2("EMu", mu50_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  Control_region_2("DiEle", diele_pass, jets_nolepveto, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_2("DiMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_2("EMu", mu50_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
+  Control_region_2("DiEle", diele_pass, jets_nolepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   
   return;
 }// End of execute event loop
 
-void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
-  //channel = DiEle, DiMu, EMu
+void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
+  // -- channel = DiEle, DiMu, EMu
   bool debug = false;
   
   if(!trigger_pass) return;
-  if(jets.size() < 4) return;
+  //if(jets.size() < 4) return;
   
-   //check N lepton condition.
+  // -- check N lepton condition.
   bool pass_N_lep = false;
   std::vector<KLepton> Leptons;
   if(channel.Contains("DiEle")){
     if(N_electron == 2 && N_veto_ele == 2 && N_veto_muon == 0){
+      FillHist("signal_eff", 5.5, weight, 0., 30., 30); 
       pass_N_lep =true;
       Leptons.push_back(electrons.at(0));
       Leptons.push_back(electrons.at(1));
@@ -302,6 +313,7 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   }
   else if(channel.Contains("DiMu")){
     if(N_muon == 2 && N_veto_muon == 2 && N_veto_ele == 0){
+      FillHist("signal_eff", 6.5, weight, 0., 30., 30);
       pass_N_lep =true;
       Leptons.push_back(muons.at(0));
       Leptons.push_back(muons.at(1));
@@ -310,6 +322,7 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   else if(channel.Contains("EMu")){
     if(N_muon == 1 && N_veto_muon ==1 && N_electron == 1 && N_veto_ele == 1){
       pass_N_lep =true;
+      FillHist("signal_eff", 7.5, weight, 0., 30., 30);
       if(electrons.at(0).Pt() > muons.at(0).Pt()){
 	Leptons.push_back(electrons.at(0));
 	Leptons.push_back(muons.at(0));
@@ -331,6 +344,17 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   Lep_1st_Pt = Leptons.at(0).Pt();
   Lep_2nd_Pt = Leptons.at(1).Pt();
   if(Lep_1st_Pt < 60 || Lep_2nd_Pt< 53) return;
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 8.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 9.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 10.5, weight, 0., 30., 30);
+  }
+  else return;
+
 
   if(debug) cout << "2"<< endl;
 
@@ -347,15 +371,103 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
     if(cleaned_jets.at(i).Pt() > 40) jets_pt40.push_back(cleaned_jets.at(i));
   }
 
-  if(jets_pt40.size() <4) return;
-  
+
   snu::KParticle ll = Leptons.at(0) + Leptons.at(1);
-  snu::KParticle lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+  if(ll.M() < 150) return;
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff",11.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 12.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 13.5, weight, 0., 30., 30);
+  }
+  else return;
+
+ 
+  snu::KParticle lljjjj;
+
+  // -- Check jet condition
+  if(fatjets.size() == 0 && jets_pt40.size() > 3){
+    lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+  }
+  else if(fatjets.size() == 1 && jets_pt40.size() > 1){
+    bool lep_in_ak8 = false;
+
+    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
+    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(1));
+
+    KLepton closest_lep;
+    KLepton further_lep;
+    
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons.at(0);
+      further_lep = Leptons.at(1);
+    }
+    else{
+      closest_lep = Leptons.at(1);
+      further_lep = Leptons.at(0);
+    }
+
+    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
+    
+    if(lep_in_ak8) lljjjj = fatjets.at(0) + further_lep + jets_pt40.at(0) + jets_pt40.at(1);
+    else lljjjj = closest_lep + further_lep + fatjets.at(0) + jets_pt40.at(0) + jets_pt40.at(1);
+  }
+  else if(fatjets.size() > 1){
+    bool lep1_in_ak8 = false;
+    bool lep2_in_ak8 = false;
+    
+    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
+    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(0));
+
+    KLepton closest_lep;
+    KLepton further_lep;
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons.at(0);
+      further_lep = Leptons.at(0);
+    }
+    else{
+      closest_lep = Leptons.at(0);
+      further_lep = Leptons.at(0);
+    }
+
+    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep1_in_ak8 = true;
+    if(fatjets.at(1).DeltaR(further_lep) < 0.8) lep2_in_ak8 = true;
+    
+    if(lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1);
+    else if(lep1_in_ak8 && !lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep;
+    else if(!lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + closest_lep;
+    else lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep + closest_lep;
+  }
+  else return;
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 14.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 15.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 16.5, weight, 0., 30., 30);
+  }
+  else return;
+
+
+  if(lljjjj.M() <300) return;
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 17.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 18.5, weight, 0., 30., 30);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 19.5, weight, 0., 30., 30);
+  }
+  else return;
   
-  if(ll.M() < 150 || lljjjj.M() <300) return;
   
   // -- So far, we have lepton cleaned jets, and muons as jets_pt30, muons 
-  
 
   // -- Call additional Weights & SFs
   //double trigger_eff_Data = mcdata_correction->TriggerEfficiencyLegByLeg(electrons_veto, "", muons, "MUON_HN_TIGHT", 0, 0, 0);
@@ -383,11 +495,11 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
     current_weight = FR_weight;
   }
   
-  FillCLHist(hnpairmm, "SR1_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, current_weight, 0); 
+  FillCLHist(hnpairmm, "SR1_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0); 
   
 }
 
-void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
+void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
   // -- This functio covers two control regions
   // -- 1. M(ll) < 130 GeV without M(lljjjj) cut
   // -- 2. M(lljjjj) < 300 GeV
@@ -396,7 +508,7 @@ void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vect
   
   if(!trigger_pass) return;
 
-  if(jets.size() < 4) return;
+  //if(jets.size() < 4) return;
 
   //check N lepton condition
   bool pass_N_lep = false;
@@ -455,20 +567,97 @@ void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vect
     if(cleaned_jets.at(i).Pt() > 40) jets_pt40.push_back(cleaned_jets.at(i));
   }
 
-  if(jets_pt40.size() <4) return;
+  //if(jets_pt40.size() <4) return;
 
   snu::KParticle ll = Leptons.at(0) + Leptons.at(1);
-  snu::KParticle lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+  snu::KParticle lljjjj;
+
+  if(fatjets.size() == 0 && jets_pt40.size() > 3){
+    lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+  }
+  else if(fatjets.size() == 1 && jets_pt40.size() > 1){
+    bool lep_in_ak8 = false;
+
+    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
+    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(1));
+
+    KLepton closest_lep;
+    KLepton further_lep;
+
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons.at(0);
+      further_lep = Leptons.at(1);
+    }
+    else{
+      closest_lep = Leptons.at(1);
+      further_lep = Leptons.at(0);
+    }
+
+    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
+
+    if(lep_in_ak8) lljjjj = fatjets.at(0) + further_lep + jets_pt40.at(0) + jets_pt40.at(1);
+    else lljjjj = closest_lep + further_lep + fatjets.at(0) + jets_pt40.at(0) + jets_pt40.at(1);
+  }
+  else if(fatjets.size() > 1){
+    
+    bool lep1_in_ak8 = false;
+    bool lep2_in_ak8 = false;
+    
+    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
+    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(0));
+
+    KLepton closest_lep;
+    KLepton further_lep;
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons.at(0);
+      further_lep = Leptons.at(0);
+    }
+    else{
+      closest_lep = Leptons.at(0);
+    further_lep = Leptons.at(0);
+    }
+    
+    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep1_in_ak8 = true;
+    if(fatjets.at(1).DeltaR(further_lep) < 0.8) lep2_in_ak8 = true;
+    
+    if(lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1);
+    else if(lep1_in_ak8 && !lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep;
+    else if(!lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + closest_lep;
+    else lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep + closest_lep;
+  }
+  else return;
+  
 
   bool CR1 = false, CR2 = false;
   TString which_CR;
   if(ll.M() < 150){
     CR1 = true;
     which_CR = "CR1_";
+    if(channel.Contains("DiEle")){
+      FillHist("signal_eff", 20.5, weight, 0., 30., 30);
+    }
+    else if(channel.Contains("DiMu")){
+      FillHist("signal_eff", 21.5, weight, 0., 30., 30);
+    }
+    else if(channel.Contains("EMu")){
+      FillHist("signal_eff", 22.5, weight, 0., 30., 30);
+    }
+    else return;
   }
   else if(ll.M() > 150 && lljjjj.M() < 300 ){
     CR2 = true;
     which_CR = "CR2_";
+    
+    if(channel.Contains("DiEle")){
+      FillHist("signal_eff", 23.5, weight, 0., 30., 30);
+    }
+    else if(channel.Contains("DiMu")){
+      FillHist("signal_eff", 24.5, weight, 0., 30., 30);
+    }
+    else if(channel.Contains("EMu")){
+      FillHist("signal_eff", 25.5, weight, 0., 30., 30);
+    }
+    else return;
   }
   else return;
   // -- So far, we have lepton cleaned jets, and muons as jets_pt30, muons
@@ -494,10 +683,10 @@ void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vect
     current_weight = FR_weight;
   }
 
-  FillCLHist(hnpairmm, which_CR + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, current_weight, 0);
+  FillCLHist(hnpairmm, which_CR + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
 }
 
-void HN_pair_all::Control_region_2(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
+void HN_pair_all::Control_region_2(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
   // -- 1. No mass cut for Njet = 0 or 1
   // -- To check overall normalization
   bool debug = false;
@@ -582,7 +771,7 @@ void HN_pair_all::Control_region_2(TString channel, bool trigger_pass, std::vect
     current_weight = FR_weight;
   }
 
-  FillCLHist(hnpairmm, "CR3_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, current_weight, 0);
+  FillCLHist(hnpairmm, "CR3_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
   
 
 }
@@ -762,9 +951,8 @@ void HN_pair_all::ClearOutputVectors() throw(LQError) {
 
 bool HN_pair_all::JSFatJetID(snu::KFatJet fatjet){
   
-  if( !(fatjet.PrunedMass() > 40) ) return false;
-  if( !(fatjet.PrunedMass() < 130) ) return false;
-  if( !( fatjet.Tau2()/fatjet.Tau1() < 0.60 ) ) return false;
+  if( !(fatjet.PrunedMass() > 60) ) return false;
+  //if( !( fatjet.Tau2()/fatjet.Tau1() < 0.60 ) ) return false;
 
   return true;
 

@@ -15,6 +15,7 @@
 #include "KMuon.h"
 #include "KJet.h"
 #include "KElectron.h"
+#include "KFatJet.h"
 #include "KEvent.h"
 #include "KLepton.h"
 
@@ -52,7 +53,7 @@ class HNpairPlotsMM : public StdPlots{
   void Fill(snu::KEvent ev, std::vector<snu::KElectron>& electrons, std::vector<snu::KJet>& jets, Double_t weight);
   void Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons,std::vector<snu::KElectron>& electrons, std::vector<snu::KJet>& jets, Double_t weight);
   void Fill(snu::KEvent ev, std::vector<snu::KMuon>& muons,std::vector<snu::KElectron>& electrons, std::vector<snu::KJet>& jets, Double_t weight,int nbjet);
-  void Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_electron, int N_muon, std::vector<snu::KJet>& jets, Double_t weight, int nbjet);
+  void Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_electron, int N_muon, std::vector<snu::KJet>& jets, std::vector<snu::KFatJet>& fatjets, Double_t weight, int nbjet);
 
   void Fill(TString name, double value, double weight);
   void Fill(TString name, double value, double value2, double weight);

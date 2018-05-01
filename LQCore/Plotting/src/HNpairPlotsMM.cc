@@ -26,8 +26,19 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["Njet_4_jet_2_Pt"]          =     new TH1D("Njet_4_jet_2_Pt" + name, "2nd jet pt Njet=4", 400, 0.0, 2000.0);
   map_sig["Njet_4_jet_3_Pt"]          =     new TH1D("Njet_4_jet_3_Pt" + name, "3rd jet pt Njet=4", 400, 0.0, 2000.0);
   map_sig["Njet_4_jet_4_Pt"]          =     new TH1D("Njet_4_jet_4_Pt" + name, "4th jet pt Njet=4", 400, 0.0, 2000.0);
+  map_sig["h_lljjjjmass_lepton_TT"]   =     new TH1D("h_lepton_TT_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_lepton_TF"]   =     new TH1D("h_lepton_TF_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_lepton_FT"]   =     new TH1D("h_lepton_FT_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_lepton_FF"]   =     new TH1D("h_lepton_FF_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig2["h_lljjjjmass_VS_Njet"]     =     new TH2D("h_lljjjjmass_VS_Njet_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 4, 0, 4);
+  map_sig2["h_lljjjjmass_VS_dR"]     =     new TH2D("h_lljjjjmass_VS_dR_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 5);
+  map_sig2["h_lljjjjmass_VS_dmNN"]     =     new TH2D("h_lljjjjmass_VS_dmNN_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 100);
+  map_sig2["h_lljjjjmass_VS_dR_jet"]     =     new TH2D("h_lljjjjmass_VS_dR_jet_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 5);
+  map_sig2["h_lljjjjmass_VS_HN2_Pt"]     =     new TH2D("h_lljjjjmass_VS_HN2_Pt_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 1000);
+  map_sig2["h_lljjjjmass_VS_Lep1_Pt"]     =     new TH2D("h_lljjjjmass_VS_Lep1_Pt_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 1000);
+  map_sig2["h_lljjjjmass_VS_Lep2_Pt"]     =     new TH2D("h_lljjjjmass_VS_Lep2_Pt_"          + name,"Invariant mass of di-lepton and leading four jets",10,0,5000, 10, 0, 1000);
 
-
+  
   //OS CR
   map_sig["h_llmass_OS"]              =     new TH1D("h_OS_llmass_"          + name,"Invariant mass of the two leading os leptons",100,0,500);
   map_sig["h_leadingLeptonPt_OS"]     =     new TH1D("h_OS_leadingLeptonPt_"   + name,"leading lepton pt",100,0,500);
@@ -65,7 +76,12 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["h_secondjet_eta_SS"]       =     new TH1D("h_SS_secondjet_eta_"          + name,"#eta distribution of the secondjet",120,-3,3);
   
   //OS SR
+  map_sig["h_pass_lepton_OS"]         =     new TH1D("h_pass_lepton_OS_"   + name,"events passing charge condition",5,0,5);
+  map_sig["h_pass_jetcondition_OS"]   =     new TH1D("h_pass_jetcondition_OS_"   + name,"events passing jet condition",5,0,5);
   map_sig["h_lljjjjmass_OS"]          =     new TH1D("h_OS_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_0_OS"]          =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_1_OS"]          =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_2_OS"]          =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjpt_OS"]            =     new TH1D("h_OS_lljjjjpt_"          + name,"pt of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjeta_OS"]           =     new TH1D("h_OS_lljjjjeta_"          + name,"#eta distribution of di-lepton and leading four jets",200,-5,5);
   map_sig["h_leadingljjmass_OS"]      =     new TH1D("h_OS_leadingljjmass_"          + name,"Invariant mass of leading ljj",5000,0,5000);
@@ -76,7 +92,12 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["h_secondljjeta_OS"]        =     new TH1D("h_OS_secondljjeta_"          + name,"#eta distribution of second ljj",120,-3,3);
   
   //SS SR
+  map_sig["h_pass_lepton_SS"]         =     new TH1D("h_pass_lepton_SS_"   + name,"events passing charge condition",5,0,5);
+  map_sig["h_pass_jetcondition_SS"]   =     new TH1D("h_pass_jetcondition_SS_"   + name,"events passing jet condition",5,0,5);
   map_sig["h_lljjjjmass_SS"]          =     new TH1D("h_SS_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_0_SS"]          =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_1_SS"]          =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_2_SS"]          =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjpt_SS"]            =     new TH1D("h_SS_lljjjjpt_"          + name,"pt of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjeta_SS"]           =     new TH1D("h_SS_lljjjjeta_"          + name,"#eta distribution of di-lepton and leading four jets",200,-5,5);
   map_sig["h_leadingljjmass_SS"]      =     new TH1D("h_SS_leadingljjmass_"          + name,"Invariant mass of leading ljj",5000,0,5000);
@@ -97,7 +118,7 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
 }
 
 
-void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_electron, int N_muon, std::vector<snu::KJet>& jets, Double_t weight, int nbjet) {
+void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_electron, int N_muon, std::vector<snu::KJet>& jets, std::vector<snu::KFatJet>& fatjets, Double_t weight, int nbjet) {
   
   //int nbjet = NBJet(jets);
   Fill("h_Nmuons" , N_muon, weight);
@@ -105,6 +126,7 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
   Fill("h_nVertices", ev.nVertices(), weight);
   Fill("h_Nbjets", nbjet, weight);  
   Fill("h_Njets", jets.size(), weight);
+  
   
   int Njet = jets.size();
   if(Njet == 1){
@@ -128,7 +150,7 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
   else{
     Fill("Nojet", 1.5, weight);
   }
-
+  
 
   
   //cout << "Fill N_s pass" << endl;
@@ -138,10 +160,17 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
   //cout << "Nmuon : " << muons.size() << endl;
   //cout << "Ne : " << electrons.size() << endl;
 
+  int N_fatjet = fatjets.size();
+
+  
+  
   snu::KParticle HN_1, HN_2;
   snu::KParticle leading_HN, second_HN;
   //reconstruct HN pair
-  if(jets.size() > 3){
+  TString jet_condition;
+  bool pass_SR_jet_condition = true;
+  if(N_fatjet == 0 && jets.size() > 3){
+    jet_condition = "AK8_0";
     float min_del_HNHN = 9999.;
     float min_del_R_mu1j = 9999.;
     float min_del_R_mu2j = 9999.;
@@ -177,13 +206,105 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
       leading_HN = HN_2;
       second_HN = HN_1;
     }
+  
   }
+  else if(N_fatjet == 1 && jets.size() > 1){
+    jet_condition = "AK8_1";
+
+    bool lep_in_ak8 = false;
+    
+    double dR_fat_lep1 = fatjets[0].DeltaR(Leptons[0]);
+    double dR_fat_lep2 = fatjets[0].DeltaR(Leptons[1]);
+    
+    KLepton closest_lep;
+    KLepton further_lep;
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons[0];
+      further_lep = Leptons[1];
+    }
+    else{
+      closest_lep = Leptons[1];
+      further_lep = Leptons[0];
+    }
+
+    HN_1 = further_lep + jets[0] + jets[1];
+
+    if(fatjets[0].DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
+    if(lep_in_ak8) HN_2 = fatjets[0];
+    else HN_2 = fatjets[0] + closest_lep;
+
+    if(HN_1.Pt() > HN_2.Pt()){
+      leading_HN = HN_1;
+      second_HN = HN_2;
+    }
+    if(HN_1.Pt() < HN_2.Pt()){
+      leading_HN = HN_2;
+      second_HN = HN_1;
+    }
+  }
+  else if(N_fatjet > 1){
+    jet_condition = "AK8_2";
+    
+    bool lep1_in_ak8 = false;
+    bool lep2_in_ak8 = false;
+    
+    double dR_fat_lep1 = fatjets[0].DeltaR(Leptons[0]);
+    double dR_fat_lep2 = fatjets[0].DeltaR(Leptons[1]);
+    
+    KLepton closest_lep;
+    KLepton further_lep;
+    if(dR_fat_lep1 < dR_fat_lep2){
+      closest_lep = Leptons[0];
+      further_lep = Leptons[1];
+    }
+    else{
+      closest_lep = Leptons[1];
+      further_lep = Leptons[0];
+    }
+    
+    if(fatjets[0].DeltaR(closest_lep) < 0.8) lep1_in_ak8 = true;
+    if(fatjets[1].DeltaR(further_lep) < 0.8) lep2_in_ak8 = true;
+    
+    if(lep1_in_ak8) HN_1 = fatjets[0];
+    else HN_1 = fatjets[0] + closest_lep;
+    
+    if(lep2_in_ak8) HN_2 = fatjets[1];
+    else HN_2 = fatjets[1] + further_lep;
+    
+    snu::KParticle Zp = HN_1 + HN_2;
+
+    Fill("h_lljjjjmass_VS_dmNN", Zp.M(), fabs(HN_1.M() - HN_2.M()), weight);
+    Fill("h_lljjjjmass_VS_Njet", Zp.M(), jets.size(), weight);
+    Fill("h_lljjjjmass_VS_dR", Zp.M(), fatjets[0].DeltaR(fatjets[1]), weight);
+    Fill("h_lljjjjmass_VS_HN2_Pt", Zp.M(), HN_2.Pt(), weight);
+    Fill("h_lljjjjmass_VS_Lep1_Pt", Zp.M(), Leptons[0].Pt(), weight);
+    Fill("h_lljjjjmass_VS_Lep2_Pt", Zp.M(), Leptons[1].Pt(), weight);
+
+    
+    if(lep1_in_ak8 && lep2_in_ak8) Fill("h_lljjjjmass_lepton_TT", Zp.M(), weight);
+    else if(lep1_in_ak8 && !lep2_in_ak8) Fill("h_lljjjjmass_lepton_TF", Zp.M(), weight);
+    else if(!lep1_in_ak8 && lep2_in_ak8) Fill("h_lljjjjmass_lepton_FT", Zp.M(), weight);
+    else Fill("h_lljjjjmass_lepton_FF", Zp.M(), weight);
+    
+    if(HN_1.Pt() > HN_2.Pt()){
+      leading_HN = HN_1;
+      second_HN = HN_2;
+    }
+    if(HN_1.Pt() < HN_2.Pt()){
+      leading_HN = HN_2;
+      second_HN = HN_1;
+    }
+  }
+  else pass_SR_jet_condition = false;
+  
+
 
   //cout << "reconstruction HNs pass" << endl;
   
   //OS
   if(Leptons[0].Charge() != Leptons[1].Charge()){
     //CR
+    Fill("h_pass_lepton_OS", 1.5, weight);
     Fill("h_llmass_OS", (Leptons[0]+Leptons[1]).M(), weight);    
     Fill("h_leadingLeptonPt_OS", Leptons[0].Pt(), weight);
     Fill("h_secondLeptonPt_OS", Leptons[1].Pt(), weight);
@@ -212,9 +333,11 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
     
     
     //SR
-    if(jets.size() > 3){
-      snu::KParticle Zp = Leptons[0] + Leptons[1] + jets[0] + jets[1] + jets[2] + jets[3];
+    if(pass_SR_jet_condition){
+      Fill("h_pass_jetcondition_OS", 1.5, weight);
+      snu::KParticle Zp = leading_HN + second_HN;
       Fill("h_lljjjjmass_OS", Zp.M(), weight);
+      Fill("h_lljjjjmass_" + jet_condition + "_OS", Zp.M(), weight);
       Fill("h_lljjjjpt_OS", Zp.Pt(), weight);
       Fill("h_lljjjjeta_OS", Zp.Eta(), weight);
       Fill("h_leadingljjmass_OS", leading_HN.M(), weight);    
@@ -229,10 +352,11 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
   //cout << "OS pass" << endl;
   
   
-    
+  
   //SS
   if(Leptons[0].Charge() == Leptons[1].Charge()){
     //CR
+    Fill("h_pass_lepton_SS", 1.5, weight);
     Fill("h_llmass_SS", (Leptons[0]+Leptons[1]).M(), weight);
     Fill("h_leadingLeptonPt_SS", Leptons[0].Pt(), weight);
     Fill("h_secondLeptonPt_SS", Leptons[1].Pt(), weight);
@@ -254,9 +378,11 @@ void HNpairPlotsMM::Fill(snu::KEvent ev, std::vector<KLepton>& Leptons, int N_el
       Fill("h_secondjet_eta_SS", jets[1].Eta(), weight);
     }
     //SR
-    if(jets.size() > 3){
-      snu::KParticle Zp = Leptons[0] + Leptons[1] + jets[0] + jets[1] + jets[2] + jets[3];
+    if(pass_SR_jet_condition){
+      Fill("h_pass_jetcondition_SS", 1.5, weight);
+      snu::KParticle Zp = leading_HN + second_HN;
       Fill("h_lljjjjmass_SS", Zp.M(), weight);
+      Fill("h_lljjjjmass_" + jet_condition + "_SS", Zp.M(), weight);
       Fill("h_lljjjjpt_SS", Zp.Pt(), weight);
       Fill("h_lljjjjeta_SS", Zp.Eta(), weight);
       Fill("h_leadingljjmass_SS", leading_HN.M(), weight);

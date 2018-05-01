@@ -394,7 +394,7 @@ class AnalyzerCore : public LQCycleBase {
   void FillHist(TString histname, float value1,  float value2, float value3, float w , float xmin, float xmax, int nbinsx,  float ymin, float ymax, int nbinsy , float zmin, float zmax, int nbinz,TString label="");
 
   /// Fills clever hists
-  void FillCLHist(histtype type, TString hist, snu::KEvent ev, std::vector<KLepton> Leptons, int N_electron, int N_muon, vector<snu::KJet> jets, double w, int nbjet);
+  void FillCLHist(histtype type, TString hist, snu::KEvent ev, std::vector<KLepton> Leptons, int N_electron, int N_muon, vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, double w, int nbjet);
   void FillCLHist(histtype type, TString hist, snu::KEvent ev,vector<snu::KMuon> muons, vector<snu::KElectron> electrons, vector<snu::KJet> jets,double weight);
   void FillCLHist(histtype type, TString hist, snu::KEvent ev,vector<snu::KMuon> muons, vector<snu::KElectron> electrons, vector<snu::KJet> jets,vector<snu::KJet> alljets,double weight);
 
