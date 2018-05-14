@@ -53,7 +53,7 @@ declare -a hn_ll_mm_tchan=( 'HNDilepton_MuMu_Tchannel_M300'   'HNDilepton_MuMu_T
 
 declare -a tmplist=('DYJets_MG_10to50_TrigInfoSample' 'DYJets_MG_TrigInfoSample' 'TT_powheg_TrigInfoSample')
 
-declare -a fake_sub_big=('DYJets' 'WJets' 'TTLL_powheg' 'DYJets_10to50')
+declare -a fake_sub_big=('DYJets' 'TT_powheg' 'TTLL_powheg' 'DYJets_10to50')
 declare -a fake_sub_small=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZ' 'ZZ' 'WW' 'WWW' 'WWZ' 'WZZ' 'ZZZ' 'WGtoLNuG' 'ZGto2LG')
 
 declare -a tmpall_mc=('TTJets_aMC' 'LowStat_WJets' 'WW'  'WZ' 'ZZ' 'LowStat_DYJets' 'DYJets_10to50' )
