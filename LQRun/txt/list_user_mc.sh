@@ -53,8 +53,14 @@ declare -a hn_ll_mm_tchan=( 'HNDilepton_MuMu_Tchannel_M300'   'HNDilepton_MuMu_T
 
 declare -a tmplist=('DYJets_MG_10to50_TrigInfoSample' 'DYJets_MG_TrigInfoSample' 'TT_powheg_TrigInfoSample')
 
-declare -a fake_sub_big=('DYJets' 'TT_powheg' 'TTLL_powheg' 'DYJets_10to50')
-declare -a fake_sub_small=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZ' 'ZZ' 'WW' 'WWW' 'WWZ' 'WZZ' 'ZZZ' 'WGtoLNuG' 'ZGto2LG')
+#declare -a fake_sub_big=('DYJets' 'TT_powheg' 'TTLL_powheg' 'DYJets_10to50')
+declare -a MC_big=('TT_powheg' 'TTLL_powheg')
+declare -a DY_amcnlo=('DYJets' 'DYJets_10to50')
+
+declare -a DY_mass_binned=('ZToEE_NNPDF30_13TeV-powheg_M_50_120' 'ZToMuMu_NNPDF30_13TeV-powheg_M_50_120' 'ZToEE_NNPDF30_13TeV-powheg_M_120_200' 'ZToEE_NNPDF30_13TeV-powheg_M_200_400' 'ZToEE_NNPDF30_13TeV-powheg_M_400_800' 'ZToEE_NNPDF30_13TeV-powheg_M_800_1400' 'ZToEE_NNPDF30_13TeV-powheg_M_1400_2300' 'ZToEE_NNPDF30_13TeV-powheg_M_2300_3500' 'ZToEE_NNPDF30_13TeV-powheg_M_3500_4500' 'ZToEE_NNPDF30_13TeV-powheg_M_4500_6000' 'ZToEE_NNPDF30_13TeV-powheg_M_6000_Inf' 'ZToMuMu_NNPDF30_13TeV-powheg_M_120_200' 'ZToMuMu_NNPDF30_13TeV-powheg_M_200_400' 'ZToMuMu_NNPDF30_13TeV-powheg_M_400_800' 'ZToMuMu_NNPDF30_13TeV-powheg_M_800_1400' 'ZToMuMu_NNPDF30_13TeV-powheg_M_1400_2300' 'ZToMuMu_NNPDF30_13TeV-powheg_M_2300_3500' 'ZToMuMu_NNPDF30_13TeV-powheg_M_3500_4500' 'ZToMuMu_NNPDF30_13TeV-powheg_M_4500_6000' 'ZToMuMu_NNPDF30_13TeV-powheg_M_6000_Inf')
+declare -a MC_small=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZ' 'ZZ' 'WW' 'WWW' 'WWZ' 'WZZ' 'ZZZ' 'WGtoLNuG' 'ZGto2LG')
+declare -a MC_CF=('TT_powheg' 'TTLL_powheg' 'ZToEE_NNPDF30_13TeV-powheg_M_50_120' 'ZToEE_NNPDF30_13TeV-powheg_M_120_200' 'ZToEE_NNPDF30_13TeV-powheg_M_200_400' 'ZToEE_NNPDF30_13TeV-powheg_M_400_800' 'ZToEE_NNPDF30_13TeV-powheg_M_800_1400' 'ZToEE_NNPDF30_13TeV-powheg_M_1400_2300' 'ZToEE_NNPDF30_13TeV-powheg_M_2300_3500' 'ZToEE_NNPDF30_13TeV-powheg_M_3500_4500' 'ZToEE_NNPDF30_13TeV-powheg_M_4500_6000' 'ZToEE_NNPDF30_13TeV-powheg_M_6000_Inf' 'DYJets' 'DYJets_10to50')
+declare -a DY_dilep_job=('ZToEE_NNPDF30_13TeV-powheg_M_50_120' 'ZToEE_NNPDF30_13TeV-powheg_M_120_200' 'ZToEE_NNPDF30_13TeV-powheg_M_200_400' 'ZToEE_NNPDF30_13TeV-powheg_M_400_800' 'ZToEE_NNPDF30_13TeV-powheg_M_800_1400' 'ZToEE_NNPDF30_13TeV-powheg_M_1400_2300' 'ZToEE_NNPDF30_13TeV-powheg_M_2300_3500' 'ZToEE_NNPDF30_13TeV-powheg_M_3500_4500' 'ZToEE_NNPDF30_13TeV-powheg_M_4500_6000' 'ZToEE_NNPDF30_13TeV-powheg_M_6000_Inf' 'ZToMuMu_NNPDF30_13TeV-powheg_M_50_120' 'ZToMuMu_NNPDF30_13TeV-powheg_M_120_200' 'ZToMuMu_NNPDF30_13TeV-powheg_M_200_400' 'ZToMuMu_NNPDF30_13TeV-powheg_M_400_800' 'ZToMuMu_NNPDF30_13TeV-powheg_M_800_1400' 'ZToMuMu_NNPDF30_13TeV-powheg_M_1400_2300' 'ZToMuMu_NNPDF30_13TeV-powheg_M_2300_3500' 'ZToMuMu_NNPDF30_13TeV-powheg_M_3500_4500' 'ZToMuMu_NNPDF30_13TeV-powheg_M_4500_6000' 'ZToMuMu_NNPDF30_13TeV-powheg_M_6000_Inf')
 
 declare -a tmpall_mc=('TTJets_aMC' 'LowStat_WJets' 'WW'  'WZ' 'ZZ' 'LowStat_DYJets' 'DYJets_10to50' )
 

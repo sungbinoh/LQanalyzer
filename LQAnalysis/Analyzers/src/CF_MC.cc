@@ -84,40 +84,72 @@ void CF_MC::ExecuteEvents()throw( LQError ){
   if (!k_isdata) {   pileup_reweight = mcdata_correction->PileupWeightByPeriod(eventbase->GetEvent());}
   
   
-  std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_HN_TIGHTv4");
+  //std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_HN_TIGHTv4");
+  std::vector<snu::KElectron> CFelectrons_SUSY = GetElectrons(true,false, "ELECTRON_SUSY_TIGHT");
+  std::vector<snu::KElectron> CFelectrons;
+  //CFelectrons.clear();
+  if(CFelectrons_SUSY.size() == 0) return;
+
+  for(int i = 0; i < CFelectrons_SUSY.size(); i++){
+    if(CFelectrons_SUSY.at(i).PFRelMiniIso() < 0.1) CFelectrons.push_back(CFelectrons_SUSY.at(i));
+  }
+  
+
+  //cout << "1" << endl;
+
   std::vector<snu::KTruth> truthColl= eventbase->GetTruth();
   
   if(CFelectrons.size() > 0){//if we have 1 or more truthmatched electrons
     for(unsigned int i = 0; i < CFelectrons.size(); i++){
-      if(fabs(CFelectrons[i].Eta())< 0.8){
-	FillHist("CF_RECOpT_IB_den", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100); 
-	FillHist("CF_TRUEpT_IB_den", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
-	if(MCIsCF(CFelectrons[i])){
-	  FillHist("CF_RECOpT_IB_num", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100);
-	  FillHist("CF_TRUEpT_IB_num", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
+      
+      if(CFelectrons.at(i).MCTruthIndex() == -1) continue;
+      
+      //cout << "2" << endl;
+      
+      if(fabs(CFelectrons.at(i).Eta())< 0.8){
+	//cout << "3" << endl;
+
+	FillHist("CF_RECOpT_IB_den", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100); 
+
+	//cout << "4" << endl;
+	
+	//cout << "CFelectrons.at(i).MCTruthIndex() : " << CFelectrons.at(i).MCTruthIndex() << endl;
+	
+	FillHist("CF_TRUEpT_IB_den", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
+	
+	//cout << "4.1" << endl;
+
+	if(MCIsCF(CFelectrons.at(i))){
+	  //cout << "5" << endl;
+	  
+	  FillHist("CF_RECOpT_IB_num", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100);
+	  
+	  //cout << "6" << endl;
+	  
+	  FillHist("CF_TRUEpT_IB_num", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
 	}//if CF
       }//if IB
-      else if(fabs(CFelectrons[i].Eta())< 1.5){
-	FillHist("CF_RECOpT_OB_den", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100);
-	FillHist("CF_TRUEpT_OB_den", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
-        if(MCIsCF(CFelectrons[i])){
-	  FillHist("CF_RECOpT_OB_num", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100);
-          FillHist("CF_TRUEpT_OB_num", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
+      else if(fabs(CFelectrons.at(i).Eta())< 1.5){
+	FillHist("CF_RECOpT_OB_den", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100);
+	FillHist("CF_TRUEpT_OB_den", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
+        if(MCIsCF(CFelectrons.at(i))){
+	  FillHist("CF_RECOpT_OB_num", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100);
+          FillHist("CF_TRUEpT_OB_num", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
         }//if CF 
       }//if OB
       else{
-	FillHist("CF_RECOpT_EC_den", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100);
-	FillHist("CF_TRUEpT_EC_den", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
-	if(MCIsCF(CFelectrons[i])){
-	  FillHist("CF_RECOpT_EC_num", 1. / CFelectrons[i].Pt(), pileup_reweight, 0., 0.05, 100);
-          FillHist("CF_TRUEpT_EC_num", 1. / truthColl.at(CFelectrons[i].MCTruthIndex()).Pt(), pileup_reweight, 0., 0.05, 100);
+	FillHist("CF_RECOpT_EC_den", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100);
+	FillHist("CF_TRUEpT_EC_den", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
+	if(MCIsCF(CFelectrons.at(i))){
+	  FillHist("CF_RECOpT_EC_num", 1. / CFelectrons.at(i).Pt(), 1., 0., 0.05, 100);
+          FillHist("CF_TRUEpT_EC_num", 1. / truthColl.at(CFelectrons.at(i).MCTruthIndex()).Pt(), 1., 0., 0.05, 100);
         }//if CF
       }//if EC
     }//for electron size, i
   }//if electron size > 0
-  
-  
-   
+
+  //cout << "end" << endl;
+
    
    
    return;

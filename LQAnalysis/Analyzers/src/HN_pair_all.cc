@@ -139,6 +139,8 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   
   bool mumu_signal = std::find(k_flags.begin(), k_flags.end(), "hn_pair_mm") != k_flags.end();
   bool ee_signal = std::find(k_flags.begin(), k_flags.end(), "hn_pair_ee") != k_flags.end();
+  bool tau_veto = std::find(k_flags.begin(), k_flags.end(), "tau_veto") != k_flags.end();
+  
   if(mumu_signal){
     another_neutrino_1 = 9900016;
     another_neutrino_2 = 9900012;
@@ -198,21 +200,22 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   //if(mu50_pass) cout << "mu50_pass" << endl;
   
   // -- Get Veto Electrons, and store number of them
-  std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_HN_VETO");
-  //std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_SUSY_VETO");
+  //std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_HN_VETO");
+  std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_SUSY_VETO");
   std::vector<snu::KElectron> electrons_veto;
   for(int i = 0; i < electrons_susy_veto.size(); i++){
-    if( electrons_susy_veto.at(i).PFRelMiniIso() < 0.40 )  electrons_veto.push_back(electrons_susy_veto.at(i));
-
+    bool pass_eta_cut = fabs(electrons_susy_veto.at(i).SCEta()) < 1.4 || fabs(electrons_susy_veto.at(i).SCEta()) > 1.6;
+    if( electrons_susy_veto.at(i).PFRelMiniIso() < 0.40 && pass_eta_cut)  electrons_veto.push_back(electrons_susy_veto.at(i));
   }
   int N_veto_ele = electrons_veto.size();
   
   // -- Get Veto Muons, return if there are not exactly two veto muons
-  std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_HN_VETO");
-  //std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
+  //std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_HN_VETO");
+  std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
   std::vector<snu::KMuon> muons_veto;
   for(int i = 0; i < muons_susy_veto.size(); i++){
-    if( muons_susy_veto.at(i).RelMiniIso() < 0.40 ) muons_veto.push_back(muons_susy_veto.at(i));
+    bool pass_eta_cut = fabs(muons_susy_veto.at(i).Eta()) < 1.4 || fabs(muons_susy_veto.at(i).Eta()) > 1.6;
+    if( muons_susy_veto.at(i).RelMiniIso() < 0.40 && pass_eta_cut) muons_veto.push_back(muons_susy_veto.at(i));
   }
   CorrectedMETRochester(muons_veto);
   int N_veto_muon = muons_veto.size();
@@ -269,8 +272,11 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KMuon> muon_Nocut = GetMuons("MUON_NOCUT",true);
   std::vector<snu::KMuon> muons;
   for(int i = 0; i < muon_Nocut.size(); i++){
-    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));
-    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));//store loose muon for fake bkg
+    //if(abs(muon_Nocut.at(i).MotherPdgId()) == 15) cout << muon_Nocut.at(i).MotherPdgId() << endl;
+    bool tau_pass = !tau_veto || abs(muon_Nocut.at(i).MotherPdgId()) != 15;
+    bool pass_eta_cut = fabs(muon_Nocut.at(i).Eta()) < 1.4 || fabs(muon_Nocut.at(i).Eta()) > 1.6;
+    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) && pass_eta_cut && tau_pass) muons.push_back(muon_Nocut.at(i));
+    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) && pass_eta_cut && tau_pass) muons.push_back(muon_Nocut.at(i));//store loose muon for fake bkg
   }
 
   std::vector<snu::KElectron> electron_sch_tight = GetElectrons("ELECTRON_HN_TIGHT",true);
@@ -279,16 +285,18 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KElectron> electron_Nocut = GetElectrons("ELECTRON_NOCUT", true);
   std::vector<snu::KElectron> electrons;
   for(int i = 0; i < electron_Nocut.size(); i++){
-    if( !NonPromptRun && PassID(electron_Nocut.at(i), electron_tight_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) ){ //&& (electron_Nocut.at(i).MissingHits() == 0) ){
-      if( fabs(electron_Nocut.at(i).Eta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 0.8 && fabs(electron_Nocut.at(i).Eta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 1.479 && fabs(electron_Nocut.at(i).Eta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
+    bool tau_pass = !tau_veto || abs(electron_Nocut.at(i).MotherPdgId()) != 15;
+    bool pass_eta_cut = fabs(electron_Nocut.at(i).SCEta()) < 1.4 || fabs(electron_Nocut.at(i).SCEta()) > 1.6;
+    if( !NonPromptRun && PassID(electron_Nocut.at(i), electron_tight_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) && pass_eta_cut){ //&& (electron_Nocut.at(i).MissingHits() == 0) ){
+      if( fabs(electron_Nocut.at(i).SCEta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
+      else if( fabs(electron_Nocut.at(i).SCEta()) > 0.8 && fabs(electron_Nocut.at(i).SCEta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
+      else if( fabs(electron_Nocut.at(i).SCEta()) > 1.479 && fabs(electron_Nocut.at(i).SCEta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
       else continue;
     }
-    if( NonPromptRun  && PassID(electron_Nocut.at(i), electron_loose_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) ){ //&& (electron_Nocut.at(i).MissingHits() == 0)  ){
-      if( fabs(electron_Nocut.at(i).Eta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 0.8 && fabs(electron_Nocut.at(i).Eta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 1.479 && fabs(electron_Nocut.at(i).Eta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
+    if( NonPromptRun  && PassID(electron_Nocut.at(i), electron_loose_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) && pass_eta_cut){ //&& (electron_Nocut.at(i).MissingHits() == 0)  ){
+      if( fabs(electron_Nocut.at(i).SCEta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
+      else if( fabs(electron_Nocut.at(i).SCEta()) > 0.8 && fabs(electron_Nocut.at(i).SCEta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
+      else if( fabs(electron_Nocut.at(i).SCEta()) > 1.479 && fabs(electron_Nocut.at(i).SCEta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
       else continue;
     }
   }
@@ -303,7 +311,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   */
   //cout << "---------------" << endl;
   //cout << "weight : " << weight << endl;
-  /*
+  
   Signal_region_1("DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   Signal_region_1("EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   Signal_region_1("DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
@@ -323,20 +331,30 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   Control_region_4("DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   Control_region_4("EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
   Control_region_4("DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, false);
-  */
-
+  
+  /*
   // -- check with s-ch ID
-  Control_region_4("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Signal_region_1("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Signal_region_1("EMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Signal_region_1("DiEle", diele_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+
+  Control_region_1("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Control_region_1("EMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Control_region_1("DiEle", diele_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+
+  Control_region_2("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Control_region_2("EMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  Control_region_2("DiEle", diele_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
+  
+
+  Control_region_3("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
   Control_region_3("EMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
   Control_region_3("DiEle", diele_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
 
   Control_region_4("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
   Control_region_4("EMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
   Control_region_4("DiEle", diele_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
-
-  
-  
-
+  */
   
   return;
 }// End of execute event loop
@@ -536,12 +554,12 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   
   double muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", muons, 0);
   double MuTrkEffSF = mcdata_correction->MuonTrackingEffScaleFactor(muons);
-  //cout << muon_tight_id << ", muon_1_pt : " << muons.at(0).Pt() << ", muon_2_pt : " << muons.at(1).Pt() << ", id_sf : " << muon_id_iso_sf << endl;
+  //cout << ", muon_1_pt : " << muons.at(0).Pt() << ", muon_2_pt : " << muons.at(1).Pt() << ", id_sf : " << muon_id_iso_sf << endl;
   double electron_sf = mcdata_correction->ElectronScaleFactor("ELECTRON_SUSY_TIGHT", electrons, 0);
   double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(electrons);
   
 
-  //cout << "N_electron : " << N_electron << ", electron_sf : " << electron_sf << ", N_muon : " << N_muon << ", muon_id_iso_sf : " << muon_id_iso_sf << endl;
+  cout << "N_electron : " << N_electron << ", electron_sf : " << electron_sf << ", N_muon : " << N_muon << ", muon_id_iso_sf : " << muon_id_iso_sf << endl;
 
 
   double current_weight = weight;
