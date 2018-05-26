@@ -4623,6 +4623,12 @@ bool AnalyzerCore::PassID(snu::KElectron el, TString elid){
   return true;
 }
 
+
+
+
+
+
+
 bool AnalyzerCore::IsCF(snu::KElectron el){
   vector<snu::KTruth> truth =  eventbase->GetTruth();
   for(unsigned int ig=0; ig < eventbase->GetTruth().size(); ig++){

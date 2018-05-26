@@ -28,9 +28,12 @@ class HN_pair_all : public AnalyzerCore {
   void Control_region_4(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
   bool JSFatJetID(snu::KFatJet fatjet);
   bool IsAwayFromFatJet(snu::KJet jet, vector<snu::KFatJet> fatjets);
-  double GetFRWeight_SB(std::vector<snu::KMuon> muon_looseColl, TString tight_ID);
-  std::map< TString, TH2D* > hist_Muon_FR_syst;
-  std::vector<TString> hist_Muon_FR_syst_name;
+  double GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_1_tight, bool lep_2_tight);
+  double GetCFWeight_SB(std::vector<KLepton> Leptons);
+  std::map< TString, TH2D* > hist_data_driven;
+  std::map< TString, TH1D* > hist_CF;
+  double weight_fake;
+  double weight_CF;
  private:
 
   //

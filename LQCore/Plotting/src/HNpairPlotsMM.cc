@@ -27,6 +27,7 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["Njet_4_jet_2_Pt"]          =     new TH1D("Njet_4_jet_2_Pt" + name, "2nd jet pt Njet=4", 400, 0.0, 2000.0);
   map_sig["Njet_4_jet_3_Pt"]          =     new TH1D("Njet_4_jet_3_Pt" + name, "3rd jet pt Njet=4", 400, 0.0, 2000.0);
   map_sig["Njet_4_jet_4_Pt"]          =     new TH1D("Njet_4_jet_4_Pt" + name, "4th jet pt Njet=4", 400, 0.0, 2000.0);
+  map_sig["Nojet"]                    =     new TH1D("Nojet" + name, "No AK4 jet", 5, 0., 5);
   map_sig["h_lljjjjmass_lepton_TT"]   =     new TH1D("h_lepton_TT_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjmass_lepton_TF"]   =     new TH1D("h_lepton_TF_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjmass_lepton_FT"]   =     new TH1D("h_lepton_FT_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
@@ -82,9 +83,9 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["h_pass_lepton_OS"]         =     new TH1D("h_pass_lepton_OS_"   + name,"events passing charge condition",5,0,5);
   map_sig["h_pass_jetcondition_OS"]   =     new TH1D("h_pass_jetcondition_OS_"   + name,"events passing jet condition",5,0,5);
   map_sig["h_lljjjjmass_OS"]          =     new TH1D("h_OS_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_0_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_1_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_2_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_0_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_1_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_2_OS"]    =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjpt_OS"]            =     new TH1D("h_OS_lljjjjpt_"          + name,"pt of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjeta_OS"]           =     new TH1D("h_OS_lljjjjeta_"          + name,"#eta distribution of di-lepton and leading four jets",200,-5,5);
   map_sig["h_leadingljjmass_OS"]      =     new TH1D("h_OS_leadingljjmass_"          + name,"Invariant mass of leading ljj",5000,0,5000);
@@ -98,9 +99,9 @@ HNpairPlotsMM::HNpairPlotsMM(TString name): StdPlots(name){
   map_sig["h_pass_lepton_SS"]         =     new TH1D("h_pass_lepton_SS_"   + name,"events passing charge condition",5,0,5);
   map_sig["h_pass_jetcondition_SS"]   =     new TH1D("h_pass_jetcondition_SS_"   + name,"events passing jet condition",5,0,5);
   map_sig["h_lljjjjmass_SS"]          =     new TH1D("h_SS_lljjjjmass_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_0_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_1_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
-  //map_sig["h_lljjjjmass_AK8_2_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_0_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_0_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_1_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_1_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
+  map_sig["h_lljjjjmass_AK8_2_SS"]    =     new TH1D("h_OS_lljjjjmass_AK8_2_"          + name,"Invariant mass of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjpt_SS"]            =     new TH1D("h_SS_lljjjjpt_"          + name,"pt of di-lepton and leading four jets",5000,0,5000);
   map_sig["h_lljjjjeta_SS"]           =     new TH1D("h_SS_lljjjjeta_"          + name,"#eta distribution of di-lepton and leading four jets",200,-5,5);
   map_sig["h_leadingljjmass_SS"]      =     new TH1D("h_SS_leadingljjmass_"          + name,"Invariant mass of leading ljj",5000,0,5000);

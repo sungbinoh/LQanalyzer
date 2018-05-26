@@ -85,7 +85,7 @@ void CF_MC::ExecuteEvents()throw( LQError ){
   
   
   //std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_HN_TIGHTv4");
-  std::vector<snu::KElectron> CFelectrons_SUSY = GetElectrons(true,false, "ELECTRON_SUSY_TIGHT");
+  std::vector<snu::KElectron> CFelectrons_SUSY = GetElectrons(true,false, "ELECTRON_SUSY_HNPAIR_TIGHT");
   std::vector<snu::KElectron> CFelectrons;
   //CFelectrons.clear();
   if(CFelectrons_SUSY.size() == 0) return;
