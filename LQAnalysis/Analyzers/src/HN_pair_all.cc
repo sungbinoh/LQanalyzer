@@ -424,8 +424,9 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     }
   }
   else weight_CF = 0;
-
+  
   // -- run Jobs with OS lepton definition
+  /*
   Signal_region_1("OS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Signal_region_1("OS_EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Signal_region_1("OS_DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
@@ -445,7 +446,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   Control_region_4("OS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Control_region_4("OS_EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Control_region_4("OS_DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
-
+  */
   // -- run Jobs for SS lepton definition
   Signal_region_1("SS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
   Signal_region_1("SS_EMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
