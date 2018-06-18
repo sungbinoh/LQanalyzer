@@ -5,8 +5,9 @@
 #sktree -a HN_pair_all -s SKTree_LeptonSkim -list DY_mass_binned -n 20
 
 #bkg fake
-#sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
-#sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
+sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
+sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
+#sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -p B -userflag RunFake -n 1 -events 1000000
 
 #Data
 #sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -n 30 #-F
@@ -19,8 +20,8 @@
 #sktree -a CF_MC -s SKTree_LeptonSkim -i DYJets -n 1 -nskip 427000 -events 428000
 
 #signal
-sktree -a HN_pair_all -s FLATCAT -list hn_pair_ee -userflag hn_pair_ee -n 20 -SIG
-sktree -a HN_pair_all -s FLATCAT -list hn_pair_mm -userflag hn_pair_mm -n 20 -SIG
+#sktree -a HN_pair_all -s FLATCAT -list hn_pair_ee -userflag hn_pair_ee -n 20 -SIG
+#sktree -a HN_pair_all -s FLATCAT -list hn_pair_mm -userflag hn_pair_mm -n 20 -SIG
 
 #fake rate with QCD samples
 #sktree -a HN_pair_fake -s SKTree_LeptonSkim -userflag DijetFake -list qcd_mm -n 30

@@ -3981,11 +3981,30 @@ void AnalyzerCore::WriteCLHists(){
     trilepit->second->Write();
     m_outputFile->cd();
   }
-
+  
+  // -- make directories for SB HN pair code
+  m_outputFile->mkdir("CR1");
+  m_outputFile->mkdir("CR2");
+  m_outputFile->mkdir("CR3");
+  m_outputFile->mkdir("CR4");
+  m_outputFile->mkdir("CR5");
+  m_outputFile->mkdir("CR6");
+  m_outputFile->mkdir("SR1");
+  
   for(map<TString, HNpairPlotsMM*>::iterator HNpairmmit = mapCLhistHNpairMM.begin(); HNpairmmit != mapCLhistHNpairMM.end(); HNpairmmit++){
+    if(HNpairmmit->first.Contains("CR1")) m_outputFile->cd("CR1");
+    else if(HNpairmmit->first.Contains("CR2")) m_outputFile->cd("CR2");
+    else if(HNpairmmit->first.Contains("CR3")) m_outputFile->cd("CR3");
+    else if(HNpairmmit->first.Contains("CR4")) m_outputFile->cd("CR4");
+    else if(HNpairmmit->first.Contains("CR5")) m_outputFile->cd("CR5");
+    else if(HNpairmmit->first.Contains("CR6")) m_outputFile->cd("CR6");
+    else if(HNpairmmit->first.Contains("SR1")) m_outputFile->cd("SR1");
+    else return;
     
-    Dir = m_outputFile->mkdir(HNpairmmit->first);
-    m_outputFile->cd( Dir->GetName() );
+    //Dir = m_outputFile->mkdir(HNpairmmit->first);
+    Dir = gDirectory->mkdir(HNpairmmit->first);
+    //m_outputFile->cd( Dir->GetName() );
+    gDirectory->cd( Dir->GetName() );
     HNpairmmit->second->Write();
     m_outputFile->cd();
   }

@@ -258,7 +258,7 @@ void HN_pair_fake::ExecuteEvents()throw( LQError ){
   /////////////////////////////////////////////////////////////////
   // -- weight = 1.0      to see signal eff
   /////////////////////////////////////////////////////////////////
- 
+  
   // -- Check if run fake
   bool NonPromptRun = std::find(k_flags.begin(), k_flags.end(), "RunFake") != k_flags.end();
   
@@ -266,38 +266,12 @@ void HN_pair_fake::ExecuteEvents()throw( LQError ){
   TString muon_loose_id = "MUON_HN_LOOSEv7_SIP3";
   TString muon_tight_id = "MUON_SUSY_TIGHT";
   
-  std::vector<snu::KMuon> muon_sch_tight = GetMuons("MUON_HN_TIGHT",true);
-  std::vector<snu::KMuon> muon_Nocut = GetMuons("MUON_NOCUT",true);
-  std::vector<snu::KMuon> muons;
-  for(int i = 0; i < muon_Nocut.size(); i++){
-    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));
-    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) ) muons.push_back(muon_Nocut.at(i));//store loose muon for fake bkg
-  }
-
   std::vector<snu::KElectron> electron_sch_tight = GetElectrons("ELECTRON_HN_TIGHT",true);
   //TString electron_tight_id = "ELECTRON_SUSY_TIGHT";
   TString electron_tight_id = "ELECTRON_SUSY_HNPAIR_TIGHT";
+  //TString electron_tight_id = "ELECTRON_HN_TIGHTv4_miniiso";
   TString electron_loose_id = "ELECTRON_SUSY_HNPAIR_VETO";
-  std::vector<snu::KElectron> electron_Nocut = GetElectrons("ELECTRON_NOCUT", true);
-  std::vector<snu::KElectron> electrons;
-  for(int i = 0; i < electron_Nocut.size(); i++){
-    if( !NonPromptRun && PassID(electron_Nocut.at(i), electron_tight_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) ){ //&& (electron_Nocut.at(i).MissingHits() == 0) ){
-      if( fabs(electron_Nocut.at(i).Eta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 0.8 && fabs(electron_Nocut.at(i).Eta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 1.479 && fabs(electron_Nocut.at(i).Eta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
-      else continue;
-    }
-    if( NonPromptRun  && PassID(electron_Nocut.at(i), electron_loose_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) ){ //&& (electron_Nocut.at(i).MissingHits() == 0)  ){
-      if( fabs(electron_Nocut.at(i).Eta()) < 0.8 && electron_Nocut.at(i).MVA() > -0.85  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 0.8 && fabs(electron_Nocut.at(i).Eta()) < 1.479 && electron_Nocut.at(i).MVA() > -0.91  ) electrons.push_back(electron_Nocut.at(i));
-      else if( fabs(electron_Nocut.at(i).Eta()) > 1.479 && fabs(electron_Nocut.at(i).Eta()) < 2.5 && electron_Nocut.at(i).MVA() > -0.83  ) electrons.push_back(electron_Nocut.at(i));
-      else continue;
-    }
-  }
-  
-  int N_muon = muons.size();
-  int N_electron = electrons.size();
-  
+    
 
   // -- check with s-ch ID
   Measure_FR_muon(muon_tight_id, "MUON_SUSY_VETO", muons_veto, false);
@@ -393,11 +367,13 @@ void HN_pair_fake::FillDenAndNum(TString prefix, snu::KMuon muon, double thiswei
   float etaarray [] = {0.0, 0.8, 1.479, 2.5};
   float ptarray [] = {30., 40., 50., 100., 150., 200., 300., 400., 500., 600., 700., 800., 900., 1000.};
   int n_eta = 3, n_pt = 13;
+  double TightISO = 0.2;
+  double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso()-TightISO) ) );
   
-  FillHist(prefix+"_events_pt_vs_eta_L", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, n_pt, etaarray, n_eta);
+  FillHist(prefix+"_events_pt_vs_eta_L", conept, fabs(muon.Eta()), thisweight, ptarray, n_pt, etaarray, n_eta);
   
   if( isTight ){
-    FillHist(prefix+"_events_pt_vs_eta_T", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, n_pt, etaarray, n_eta);
+    FillHist(prefix+"_events_pt_vs_eta_T", conept, fabs(muon.Eta()), thisweight, ptarray, n_pt, etaarray, n_eta);
   }
 
 }
@@ -407,11 +383,13 @@ void HN_pair_fake::FillDenAndNum(TString prefix, snu::KElectron electron, double
   float etaarray [] = {0.0, 0.8, 1.479, 2.5};
   float ptarray [] = {30., 40., 50., 100., 150., 200., 300., 400., 500., 600., 700., 800., 900., 1000.};
   int n_eta = 3, n_pt = 13;
-
-  FillHist(prefix+"_events_pt_vs_eta_L", electron.Pt(), fabs(electron.SCEta()), thisweight, ptarray, n_pt, etaarray, n_eta);
+  double TightISO = 0.1;
+  double conept = electron.Pt()*(1 + max(0.,(electron.PFRelMiniIso()-TightISO) ) );
+  
+  FillHist(prefix+"_events_pt_vs_eta_L", conept, fabs(electron.SCEta()), thisweight, ptarray, n_pt, etaarray, n_eta);
 
   if( isTight ){
-    FillHist(prefix+"_events_pt_vs_eta_T", electron.Pt(), fabs(electron.SCEta()), thisweight, ptarray, n_pt, etaarray, n_eta);
+    FillHist(prefix+"_events_pt_vs_eta_T", conept, fabs(electron.SCEta()), thisweight, ptarray, n_pt, etaarray, n_eta);
   }
 
 }

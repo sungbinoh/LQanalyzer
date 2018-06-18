@@ -68,8 +68,19 @@ HN_pair_all::HN_pair_all() :  AnalyzerCore(), out_muons(0)  {
   MakeCleverHistograms(hnpairmm, "CR5_SS_DiMu");
   MakeCleverHistograms(hnpairmm, "CR5_SS_DiEle");
   MakeCleverHistograms(hnpairmm, "CR5_SS_EMu");
-
   
+  // -- CLH for HN mass cut
+  MakeCleverHistograms(hnpairmm, "SR1_OS_DiMu_HNcut");
+  MakeCleverHistograms(hnpairmm, "SR1_OS_DiEle_HNcut");
+  MakeCleverHistograms(hnpairmm, "SR1_OS_EMu_HNcut");
+  
+  MakeCleverHistograms(hnpairmm, "SR1_SS_DiMu_HNcut");
+  MakeCleverHistograms(hnpairmm, "SR1_SS_DiEle_HNcut");
+  MakeCleverHistograms(hnpairmm, "SR1_SS_EMu_HNcut");
+    
+  MakeCleverHistograms(hnpairmm, "SR1_SS_DiEle_CF_HNcut");
+  MakeCleverHistograms(hnpairmm, "SR1_SS_EMu_CF_HNcut");
+    
   //CLH for CF bkg
   MakeCleverHistograms(hnpairmm, "SR1_SS_DiEle_CF");
   MakeCleverHistograms(hnpairmm, "SR1_SS_EMu_CF");
@@ -83,7 +94,7 @@ HN_pair_all::HN_pair_all() :  AnalyzerCore(), out_muons(0)  {
   MakeCleverHistograms(hnpairmm, "CR4_SS_EMu_CF");
   MakeCleverHistograms(hnpairmm, "CR5_SS_DiEle_CF");
   MakeCleverHistograms(hnpairmm, "CR5_SS_EMu_CF");
-  
+    
 }
 
 
@@ -319,7 +330,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   bool NonPromptRun = std::find(k_flags.begin(), k_flags.end(), "RunFake") != k_flags.end();
   
   //TString muon_tight_id = "MUON_HN_TIGHT";
-  TString muon_loose_id = "MUON_HN_LOOSEv7_SIP3";
+  TString muon_loose_id = "MUON_SUSY_VETO";
   TString muon_tight_id = "MUON_SUSY_TIGHT";
   
   std::vector<snu::KMuon> muon_sch_tight = GetMuons("MUON_HN_TIGHT",true);
@@ -342,6 +353,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   
   std::vector<snu::KElectron> electron_sch_tight = GetElectrons("ELECTRON_HN_TIGHT",true);
   TString electron_tight_id = "ELECTRON_SUSY_HNPAIR_TIGHT";
+  //TString electron_tight_id = "ELECTRON_HN_TIGHTv4_miniiso";
   TString electron_loose_id = "ELECTRON_SUSY_HNPAIR_VETO";
   std::vector<snu::KElectron> electron_Nocut = GetElectrons("ELECTRON_NOCUT", true);
   std::vector<snu::KElectron> electrons;
@@ -349,11 +361,11 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   for(int i = 0; i < electron_Nocut.size(); i++){
     bool tau_pass = !tau_veto || abs(electron_Nocut.at(i).MotherPdgId()) != 15;
     bool pass_eta_cut = fabs(electron_Nocut.at(i).SCEta()) < 1.4 || fabs(electron_Nocut.at(i).SCEta()) > 1.6;
-    if( !NonPromptRun && PassID(electron_Nocut.at(i), electron_tight_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.10) && tau_pass){ //&& (electron_Nocut.at(i).MissingHits() == 0) ){
+    if( !NonPromptRun && PassID(electron_Nocut.at(i), electron_tight_id) && tau_pass){ //&& (electron_Nocut.at(i).MissingHits() == 0) ){
       if(pass_eta_cut) electrons.push_back(electron_Nocut.at(i));
       electrons_SS.push_back(electron_Nocut.at(i));
     }
-    if( NonPromptRun  && PassID(electron_Nocut.at(i), electron_loose_id) && (electron_Nocut.at(i).PFRelMiniIso() < 0.60) && tau_pass){ //&& (electron_Nocut.at(i).MissingHits() == 0)  ){
+    if( NonPromptRun  && PassID(electron_Nocut.at(i), electron_loose_id) && tau_pass){ //&& (electron_Nocut.at(i).MissingHits() == 0)  ){
       if(pass_eta_cut) electrons.push_back(electron_Nocut.at(i));
       electrons_SS.push_back(electron_Nocut.at(i));
     }
@@ -380,25 +392,25 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
 	weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
 	cout << "weight_fake : " << weight_fake << endl;
       }
-      else return;
+      //else return;
     }
     else if(N_muon_SS == 2 && N_veto_muon == 2 && N_veto_ele == 0){
       Leptons.push_back(muons_SS.at(0));
       Leptons.push_back(muons_SS.at(1));
-      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).PFRelMiniIso() < 0.10) ) lep_1_tight = true;
-      if(PassID(muons_SS.at(1), muon_tight_id) && (muons_SS.at(1).PFRelMiniIso() < 0.10) ) lep_2_tight = true;
+      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).RelMiniIso() < 0.20) ) lep_1_tight = true;
+      if(PassID(muons_SS.at(1), muon_tight_id) && (muons_SS.at(1).RelMiniIso() < 0.20) ) lep_2_tight = true;
       
       if(Leptons.at(0).Charge() == Leptons.at(1).Charge()) weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
-      else return;
+      //else return;
     }
     else if(N_muon_SS == 1 && N_veto_muon ==1 && N_electron_SS == 1 && N_veto_ele == 1){
       Leptons.push_back(electrons_SS.at(0));
       Leptons.push_back(muons_SS.at(0));
       if(PassID(electrons_SS.at(0), electron_tight_id) && (electrons_SS.at(0).PFRelMiniIso() < 0.10) ) lep_1_tight = true;
-      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).PFRelMiniIso() < 0.10) ) lep_2_tight = true;
+      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).RelMiniIso() < 0.20) ) lep_2_tight = true;
       
       if(Leptons.at(0).Charge() == Leptons.at(1).Charge()) weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
-      else return;
+      //else return;
     }
     else weight_fake = 0;
   }
@@ -426,7 +438,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   else weight_CF = 0;
   
   // -- run Jobs with OS lepton definition
-  /*
+  
   Signal_region_1("OS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Signal_region_1("OS_EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Signal_region_1("OS_DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
@@ -446,7 +458,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   Control_region_4("OS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Control_region_4("OS_EMu", mu50_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
   Control_region_4("OS_DiEle", diele_pass, jets_lepveto, fatjets, electrons, muons, N_electron, N_veto_ele, N_muon, N_veto_muon, NonPromptRun);
-  */
+
   // -- run Jobs for SS lepton definition
   Signal_region_1("SS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
   Signal_region_1("SS_EMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
@@ -467,7 +479,11 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   Control_region_4("SS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
   Control_region_4("SS_EMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
   Control_region_4("SS_DiEle", diele_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
-    
+ 
+  //Z ll + 1 fake l
+  Control_region_5("SS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, electron_tight_id, muon_tight_id, NonPromptRun);
+  Control_region_5("SS_DiEle", diele_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, electron_tight_id, muon_tight_id, NonPromptRun);
+
   /*
   // -- check with s-ch ID
   Signal_region_1("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
@@ -497,6 +513,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
 
 void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
   // -- channel = DiEle, DiMu, EMu
+  //cout << "start Signal_region_1 : " << channel << endl;
   bool debug = false;
   
   // -- Trigger pass
@@ -560,6 +577,7 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   }
 
   if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
+  //if(Lep_1st_Pt < 75 || Lep_2nd_Pt< 75) return; //for 2017
   if(channel.Contains("DiEle")){
     FillHist("signal_eff", 8.5, weight, 0., 40., 40);
   }
@@ -602,14 +620,52 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
 
  
   snu::KParticle lljjjj;
-
+  snu::KParticle HN_1, HN_2;
+  snu::KParticle leading_HN, second_HN;
   // -- Check jet condition
   if(fatjets.size() == 0 && jets_pt40.size() > 3){
-    lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+    float min_del_HNHN = 9999.;
+    float min_del_R_mu1j = 9999.;
+    float min_del_R_mu2j = 9999.;
+    
+    for(int j1 = 0; j1 < 4; j1 ++){
+      if(Leptons.at(0).DeltaR(jets_pt40.at(j1)) < min_del_R_mu1j) min_del_R_mu1j = Leptons.at(0).DeltaR(jets_pt40.at(j1));
+      if(Leptons.at(1).DeltaR(jets_pt40.at(j1)) < min_del_R_mu2j) min_del_R_mu2j = Leptons.at(1).DeltaR(jets_pt40.at(j1));
+
+      for(int j2 = 0; j2 < 4; j2 ++){
+	snu::KParticle all_jet = jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
+	snu::KParticle current_HN1 = Leptons.at(0) + jets_pt40.at(j1) + jets_pt40.at(j2);
+        all_jet = all_jet - jets_pt40.at(j1) - jets_pt40.at(j2);
+	snu::KParticle current_HN2 = Leptons.at(1) + all_jet;
+
+        if(fabs(current_HN1.M() - current_HN2.M()) < min_del_HNHN && j1 != j2){
+          min_del_HNHN = fabs(current_HN1.M() - current_HN2.M());
+          HN_1 = current_HN1;
+          HN_2 = current_HN2;
+        }
+        current_HN1 = Leptons.at(0) + all_jet;
+        current_HN2 = Leptons.at(1) + jets_pt40.at(j1) + jets_pt40.at(j2);
+        if(fabs(current_HN1.M() - current_HN2.M()) < min_del_HNHN && j1 != j2){
+          min_del_HNHN = fabs(current_HN1.M() - current_HN2.M());
+          HN_1 = current_HN1;
+          HN_2 = current_HN2;
+        }
+      }
+    }
+    if(HN_1.Pt() > HN_2.Pt()){
+      leading_HN = HN_1;
+      second_HN = HN_2;
+    }
+    if(HN_1.Pt() < HN_2.Pt()){
+      leading_HN = HN_2;
+      second_HN = HN_1;
+    }
+
+    lljjjj = leading_HN + second_HN;
   }
   else if(fatjets.size() == 1 && jets_pt40.size() > 1){
     bool lep_in_ak8 = false;
-
+    
     double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
     double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(1));
 
@@ -624,39 +680,65 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
       closest_lep = Leptons.at(1);
       further_lep = Leptons.at(0);
     }
-
-    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
     
-    if(lep_in_ak8) lljjjj = fatjets.at(0) + further_lep + jets_pt40.at(0) + jets_pt40.at(1);
-    else lljjjj = closest_lep + further_lep + fatjets.at(0) + jets_pt40.at(0) + jets_pt40.at(1);
+    HN_1 = further_lep + jets_pt40.at(0) + jets_pt40.at(1);
+    
+    if(fatjets[0].DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
+    if(lep_in_ak8) HN_2 = fatjets.at(0);
+    else HN_2 = fatjets.at(0) + closest_lep;
+    
+    if(HN_1.Pt() > HN_2.Pt()){
+      leading_HN = HN_1;
+      second_HN = HN_2;
+    }
+    if(HN_1.Pt() < HN_2.Pt()){
+      leading_HN = HN_2;
+      second_HN = HN_1;
+    }
+    
+    lljjjj = leading_HN + second_HN;
   }
   else if(fatjets.size() > 1){
     bool lep1_in_ak8 = false;
     bool lep2_in_ak8 = false;
     
     double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
-    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(0));
-
+    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(1));
+    
     KLepton closest_lep;
     KLepton further_lep;
     if(dR_fat_lep1 < dR_fat_lep2){
       closest_lep = Leptons.at(0);
-      further_lep = Leptons.at(0);
+      further_lep = Leptons.at(1);
     }
     else{
-      closest_lep = Leptons.at(0);
+      closest_lep = Leptons.at(1);
       further_lep = Leptons.at(0);
     }
-
+    
     if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep1_in_ak8 = true;
     if(fatjets.at(1).DeltaR(further_lep) < 0.8) lep2_in_ak8 = true;
     
-    if(lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1);
-    else if(lep1_in_ak8 && !lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep;
-    else if(!lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + closest_lep;
-    else lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep + closest_lep;
+    if(lep1_in_ak8) HN_1 = fatjets.at(0);
+    else HN_1 = fatjets.at(0) + closest_lep;
+    
+    if(lep2_in_ak8) HN_2 = fatjets.at(1);
+    else HN_2 = fatjets.at(1) + further_lep;
+    
+    if(HN_1.Pt() > HN_2.Pt()){
+      leading_HN = HN_1;
+      second_HN = HN_2;
+    }
+    if(HN_1.Pt() < HN_2.Pt()){
+      leading_HN = HN_2;
+      second_HN = HN_1;
+    }
+    
+    lljjjj = leading_HN + second_HN;
   }
   else return;
+  
+  
   if(channel.Contains("DiEle")){
     FillHist("signal_eff", 14.5, weight, 0., 40., 40);
   }
@@ -697,7 +779,7 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
   double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(electrons);
   
 
-  cout << "N_electron : " << N_electron << ", electron_sf : " << electron_sf << ", N_muon : " << N_muon << ", muon_id_iso_sf : " << muon_id_iso_sf << endl;
+  //cout << "N_electron : " << N_electron << ", electron_sf : " << electron_sf << ", N_muon : " << N_muon << ", muon_id_iso_sf : " << muon_id_iso_sf << endl;
 
 
   double current_weight = weight;
@@ -709,15 +791,22 @@ void HN_pair_all::Signal_region_1(TString channel, bool trigger_pass, std::vecto
     current_weight = weight_fake;
   }
   
-  FillCLHist(hnpairmm, "SR1_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0); 
-  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "SR1_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+
   
+  
+
+  FillCLHist(hnpairmm, "SR1_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0); 
+  //if(leading_HN.M() > 200) FillCLHist(hnpairmm, "SR1_" + channel + "_HNcut", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
+
+  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle")){
+    FillCLHist(hnpairmm, "SR1_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+    //if(leading_HN.M() > 200) FillCLHist(hnpairmm, "SR1_" + channel + "_CF_HNcut", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  }
 }
 
 void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun){
   // -- This functio covers two control regions
   // -- 1. M(ll) < 130 GeV without M(lljjjj) cut
-  // -- 2. M(lljjjj) < 300 GeV
 
   bool debug = false;
   
@@ -856,11 +945,6 @@ void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, std::vect
     }
     else return;
   }
-  else if(ll.M() > 150 && lljjjj.M() < 300 ){
-    CR2 = true;
-    which_CR = "CR2_";
-   
-  }
   else return;
   // -- So far, we have jets, and muons as jets_pt30, muons
   // -- Call additional Weights & SFs 
@@ -966,8 +1050,8 @@ void HN_pair_all::Control_region_2(TString channel, bool trigger_pass, std::vect
     current_weight = weight_fake;
   }
 
-  FillCLHist(hnpairmm, "CR3_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
-  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR3_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  FillCLHist(hnpairmm, "CR2_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
+  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR2_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
 
 }
 
@@ -1055,8 +1139,8 @@ void HN_pair_all::Control_region_3(TString channel, bool trigger_pass, std::vect
     current_weight = weight_fake;
   }
 
-  FillCLHist(hnpairmm, "CR4_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
-  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR4_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  FillCLHist(hnpairmm, "CR3_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
+  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR3_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
 
 }
 
@@ -1149,8 +1233,143 @@ void HN_pair_all::Control_region_4(TString channel, bool trigger_pass, std::vect
     current_weight = weight_fake;
   }
 
-  FillCLHist(hnpairmm, "CR5_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
-  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR5_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  FillCLHist(hnpairmm, "CR4_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
+  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR4_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  
+}
+
+void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, 
+				   TString electron_tight_id, TString muon_tight_id, bool NonPromptRun){
+  
+  //cout << "start Control_region_5" << endl;
+  
+  if(!trigger_pass) return;
+  
+  //cout << "0" << endl;
+
+  
+  bool pass_N_lep = false;
+  bool lep_1_tight, lep_2_tight, lep_3_tight;
+  int N_electron_CLH, N_muon_CLH;
+  std::vector<KLepton> Leptons;
+  if(channel.Contains("DiEle")){//3e
+    if(N_electron == 3 && N_veto_ele == 3 ){
+      //cout << "0.1" << endl;
+
+      pass_N_lep =true;
+      Leptons.push_back(electrons.at(0));
+      Leptons.push_back(electrons.at(1));
+      Leptons.push_back(electrons.at(2));
+      
+      lep_1_tight = ( PassID(electrons.at(0), electron_tight_id) && (electrons.at(0).PFRelMiniIso() < 0.10) );
+      lep_2_tight = ( PassID(electrons.at(1), electron_tight_id) && (electrons.at(1).PFRelMiniIso() < 0.10) );
+      lep_3_tight = ( PassID(electrons.at(2), electron_tight_id) && (electrons.at(2).PFRelMiniIso() < 0.10) );
+      N_electron_CLH = 2;
+      N_muon_CLH = 0;
+    }
+  }
+  else if(channel.Contains("DiMu")){//3mu
+    if(N_muon == 3 && N_veto_muon == 3){
+      //cout << "0.2" << endl;
+
+      pass_N_lep =true;
+      Leptons.push_back(muons.at(0));
+      Leptons.push_back(muons.at(1));
+      Leptons.push_back(muons.at(2));
+
+      lep_1_tight = ( PassID(muons.at(0), muon_tight_id) && (muons.at(0).RelMiniIso() < 0.20) );
+      lep_2_tight = ( PassID(muons.at(1), muon_tight_id) && (muons.at(1).RelMiniIso() < 0.20) );
+      lep_3_tight = ( PassID(muons.at(2), muon_tight_id) && (muons.at(2).RelMiniIso() < 0.20) );
+      
+      N_electron_CLH = 0;
+      N_muon_CLH = 2;
+    }
+  }
+  else pass_N_lep = false;
+  if(!pass_N_lep) return;
+
+  //cout << "1" << endl;
+
+  
+  double Lep_1st_Pt, Lep_2nd_Pt, Lep_3rd_Pt;
+  Lep_1st_Pt = Leptons.at(0).Pt();
+  Lep_2nd_Pt = Leptons.at(1).Pt();
+  Lep_3rd_Pt = Leptons.at(2).Pt();
+
+  if(Lep_1st_Pt < 65 || Lep_2nd_Pt < 65 || Lep_3rd_Pt < 65) return;
+
+  std::vector<snu::KJet> jets_pt40;
+  for(int i = 0; i < jets.size(); i++){
+    if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
+  }
+  
+  double min_Z_window = 9999.;
+  int min_Z_lep_1, min_Z_lep_2;
+  for(unsigned int i = 0; i < 3; i++){
+    for(unsigned int j = 0; j < 3; j++){
+      if(i < j){
+	double mll = (Leptons.at(i) + Leptons.at(j)).M();
+	double mass_dif = fabs(mll - 91.2);
+	if(mass_dif < min_Z_window){
+	  min_Z_window = mass_dif;
+	  min_Z_lep_1 = i;
+	  min_Z_lep_2 = j;
+	}
+      }
+    }
+  }
+  
+  //cout << "2" << endl;
+
+  if(min_Z_window > 20) return;
+  
+  std::vector<KLepton> Leptons_CLH;
+  Leptons_CLH.push_back(Leptons.at(min_Z_lep_1));
+  Leptons_CLH.push_back(Leptons.at(min_Z_lep_2));
+  
+  //cout << "3" << endl;
+
+  if(jets_pt40.size() < 2) return;
+  
+  int nbjet=0;
+  for(unsigned int ij=0; ij < jets_pt40.size(); ij++){
+    if( IsBTagged(jets_pt40.at(ij),   snu::KJet::CSVv2, snu::KJet::Medium, -1, 0))  nbjet++;
+  }
+  //if(nbjet != 0) return;
+  // -- fill cutflow
+ 
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 32.5, weight, 0., 40., 40);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 33.5, weight, 0., 40., 40);
+  }
+  else return;
+ 
+       
+       
+  double trigger_sf = 1.; // 1st muon Pt > 60 GeV with HLT_Mu50 would lead to trigger SF ~ 1. Approx. for now
+  double muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", muons, 0);
+  double MuTrkEffSF = mcdata_correction->MuonTrackingEffScaleFactor(muons);
+  double electron_sf = mcdata_correction->ElectronScaleFactor("ELECTRON_SUSY_TIGHT", electrons, 0);
+  double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(electrons);
+
+
+  double current_weight = weight;
+  if(!isData){
+    current_weight = current_weight * trigger_sf * muon_id_iso_sf * MuTrkEffSF * electron_sf * electron_RecoSF;
+  }
+
+  if(NonPromptRun){
+    double fakeweight = GetFRWeight_tri_SB(Leptons, lep_1_tight, lep_2_tight, lep_3_tight, false);
+    current_weight = fakeweight;
+    cout << "CR5 FR weight : " << current_weight << endl;
+  }
+
+  //cout << "CL" << endl;
+  
+  FillCLHist(hnpairmm, "CR5_" + channel, eventbase->GetEvent(), Leptons_CLH, N_electron_CLH, N_muon_CLH, jets_pt40, fatjets, current_weight, nbjet);
+  //if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR5_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
 
 }
 
@@ -1277,28 +1496,37 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
   //double mu_2_cone_pt = muon_looseColl.at(1).Pt()*(1 + max(0.,(muon_looseColl.at(1).RelIso04()-0.07) ) );
   double lep_1_pt = loose_lepColl.at(0).Pt();
   double lep_2_pt = loose_lepColl.at(1).Pt();
+  double el_miniiso_tight = 0.1;
+  double mu_miniiso_tight = 0.2;
+  double lep_1_ptcone = 0;
+  double lep_2_ptcone = 0;
+    
   TString hist_name_1, hist_name_2;
   if(loose_lepColl.at(0).LeptonFlavour() == 1){//1st lepton is muon
     hist_name_1 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(0).LeptonFlavour() == 2){//1st lepton is electron
     hist_name_1 = "ELECTRON_SUSY_HNPAIR_TIGHTFR_events_pt_vs_eta_TElectron";
+    lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - el_miniiso_tight) ) );
   }
   else return 0.;
 
   if(loose_lepColl.at(1).LeptonFlavour() == 1){//2nd lepton is muon
     hist_name_2 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(1).LeptonFlavour() == 2){//2nd lepton is electron
     hist_name_2 = "ELECTRON_SUSY_HNPAIR_TIGHTFR_events_pt_vs_eta_TElectron";
+    lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - el_miniiso_tight) ) );
   }
   else return 0.;
-
+  
   double fr1 = 0.;
   double fr2 = 0.;
-
+  
   if(lep_1_pt < 1000){
-    int binx = hist_data_driven[hist_name_1]->FindBin(lep_1_pt, fabs(loose_lepColl.at(0).Eta()));
+    int binx = hist_data_driven[hist_name_1]->FindBin(lep_1_ptcone, fabs(loose_lepColl.at(0).Eta()));
     fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
   }
   else{
@@ -1306,7 +1534,7 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
     fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
   }
   if(lep_2_pt < 1000){
-    int binx = hist_data_driven[hist_name_2]->FindBin(lep_2_pt, fabs(loose_lepColl.at(1).Eta()));
+    int binx = hist_data_driven[hist_name_2]->FindBin(lep_2_ptcone, fabs(loose_lepColl.at(1).Eta()));
     fr2 = float(hist_data_driven[hist_name_2]->GetBinContent(binx));
   }
   else{
@@ -1336,6 +1564,106 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
   }
   else return 0.;//TT
 }
+
+
+double HN_pair_all::GetFRWeight_tri_SB(std::vector<KLepton> loose_lepColl, bool lep_1_tight, bool lep_2_tight, bool lep_3_tight, bool geterr){
+  if(loose_lepColl.size() != 3) return 0.;
+  
+  double lep_1_pt = loose_lepColl.at(0).Pt();
+  double lep_2_pt = loose_lepColl.at(1).Pt();
+  double lep_3_pt = loose_lepColl.at(2).Pt();
+
+  double el_miniiso_tight = 0.1;
+  double mu_miniiso_tight = 0.2;
+  
+  double lep_1_ptcone = 0;
+  double lep_2_ptcone = 0;
+  double lep_3_ptcone = 0;
+
+  
+  TString hist_name_1, hist_name_2, hist_name_3;
+  if(loose_lepColl.at(0).LeptonFlavour() == 1){//1st lepton is muon
+    hist_name_1 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - mu_miniiso_tight) ) );
+  }
+  else if (loose_lepColl.at(0).LeptonFlavour() == 2){//1st lepton is electron
+    hist_name_1 = "ELECTRON_SUSY_HNPAIR_TIGHTFR_events_pt_vs_eta_TElectron";
+    lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - el_miniiso_tight) ) );
+  }
+  else return 0.;
+
+  if(loose_lepColl.at(1).LeptonFlavour() == 1){//2nd lepton is muon
+    hist_name_2 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - mu_miniiso_tight) ) );
+  }
+  else if (loose_lepColl.at(1).LeptonFlavour() == 2){//2nd lepton is electron
+    hist_name_2 = "ELECTRON_SUSY_HNPAIR_TIGHTFR_events_pt_vs_eta_TElectron";
+    lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - el_miniiso_tight) ) );
+  }
+  else return 0.;
+
+  if(loose_lepColl.at(2).LeptonFlavour() == 1){//3rd lepton is muon
+    hist_name_3 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    lep_3_ptcone = loose_lepColl.at(2).Pt()*(1 + max(0.,(loose_lepColl.at(2).miniRelIso() - mu_miniiso_tight) ) );
+  }
+  else if (loose_lepColl.at(1).LeptonFlavour() == 2){//3rd lepton is electron
+    hist_name_3 = "ELECTRON_SUSY_HNPAIR_TIGHTFR_events_pt_vs_eta_TElectron";
+    lep_3_ptcone = loose_lepColl.at(2).Pt()*(1 + max(0.,(loose_lepColl.at(2).miniRelIso() - el_miniiso_tight) ) );
+  }
+  else return 0.;
+
+  double fr1 = 0.;
+  double fr2 = 0.;
+  double fr3 = 0.;
+  
+  if(lep_1_pt < 1000){
+    int binx = hist_data_driven[hist_name_1]->FindBin(lep_1_ptcone, fabs(loose_lepColl.at(0).Eta()));
+    fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
+  }
+  else{
+    int binx = hist_data_driven[hist_name_1]->FindBin(990., fabs(loose_lepColl.at(0).Eta()));
+    fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
+  }
+  if(lep_2_pt < 1000){
+    int binx = hist_data_driven[hist_name_2]->FindBin(lep_2_ptcone, fabs(loose_lepColl.at(1).Eta()));
+    fr2 = float(hist_data_driven[hist_name_2]->GetBinContent(binx));
+  }
+  else{
+    int binx = hist_data_driven[hist_name_2]->FindBin(990., fabs(loose_lepColl.at(1).Eta()));
+    fr2 = float(hist_data_driven[hist_name_2]->GetBinContent(binx));
+  }
+  if(lep_3_pt < 1000){
+    int binx = hist_data_driven[hist_name_3]->FindBin(lep_3_ptcone, fabs(loose_lepColl.at(2).Eta()));
+    fr3 = float(hist_data_driven[hist_name_3]->GetBinContent(binx));
+  }
+  else{
+    int binx = hist_data_driven[hist_name_3]->FindBin(990., fabs(loose_lepColl.at(2).Eta()));
+    fr3 = float(hist_data_driven[hist_name_3]->GetBinContent(binx));
+  }
+  
+  vector<float> a, fr_onlyLoose;
+  
+  a.push_back( fr1/(1.-fr1) );
+  a.push_back( fr2/(1.-fr2) );
+  a.push_back( fr3/(1.-fr3) );
+
+  float this_weight=-1.;
+  
+  if(!lep_1_tight) fr_onlyLoose.push_back(a.at(0));
+  if(!lep_2_tight) fr_onlyLoose.push_back(a.at(1));
+  if(!lep_3_tight) fr_onlyLoose.push_back(a.at(2));
+  
+  if(fr_onlyLoose.size() < 1) return 0;
+  
+  for(unsigned int i=0; i<fr_onlyLoose.size(); i++){
+    this_weight *= -fr_onlyLoose.at(i);
+  }
+
+  if(!geterr) return this_weight;
+
+}
+
+
 
 double HN_pair_all::GetCFWeight_SB(std::vector<KLepton> Leptons){
   double cf1 = 0., cf2 = 0.;

@@ -85,18 +85,14 @@ void CF_MC::ExecuteEvents()throw( LQError ){
   
   
   //std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_HN_TIGHTv4");
-  std::vector<snu::KElectron> CFelectrons_SUSY = GetElectrons(true,false, "ELECTRON_SUSY_HNPAIR_TIGHT");
-  std::vector<snu::KElectron> CFelectrons;
+  std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_SUSY_HNPAIR_TIGHT");
+  //std::vector<snu::KElectron> CFelectrons = GetElectrons(true,false, "ELECTRON_HN_TIGHTv4_miniiso");
+
   //CFelectrons.clear();
-  if(CFelectrons_SUSY.size() == 0) return;
-
-  for(int i = 0; i < CFelectrons_SUSY.size(); i++){
-    if(CFelectrons_SUSY.at(i).PFRelMiniIso() < 0.1) CFelectrons.push_back(CFelectrons_SUSY.at(i));
-  }
+  if(CFelectrons.size() == 0) return;
   
-
   //cout << "1" << endl;
-
+  
   std::vector<snu::KTruth> truthColl= eventbase->GetTruth();
   
   if(CFelectrons.size() > 0){//if we have 1 or more truthmatched electrons
