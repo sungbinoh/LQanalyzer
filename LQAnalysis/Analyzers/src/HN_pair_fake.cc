@@ -203,7 +203,7 @@ void HN_pair_fake::ExecuteEvents()throw( LQError ){
   std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_SUSY_HNPAIR_VETO");
   std::vector<snu::KElectron> electrons_veto;
   for(int i = 0; i < electrons_susy_veto.size(); i++){
-    if( electrons_susy_veto.at(i).PFRelMiniIso() < 0.60 )  electrons_veto.push_back(electrons_susy_veto.at(i));
+    if( electrons_susy_veto.at(i).PFRelMiniIso(false) < 0.60 )  electrons_veto.push_back(electrons_susy_veto.at(i));
 
   }
   int N_veto_ele = electrons_veto.size();
@@ -213,7 +213,7 @@ void HN_pair_fake::ExecuteEvents()throw( LQError ){
   std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
   std::vector<snu::KMuon> muons_veto;
   for(int i = 0; i < muons_susy_veto.size(); i++){
-    if( muons_susy_veto.at(i).RelMiniIso() < 0.60 ) muons_veto.push_back(muons_susy_veto.at(i));
+    if( muons_susy_veto.at(i).PFRelMiniIsoRho() < 0.60 ) muons_veto.push_back(muons_susy_veto.at(i));
   }
   CorrectedMETRochester(muons_veto);
   int N_veto_muon = muons_veto.size();
@@ -315,7 +315,7 @@ void HN_pair_fake::Measure_FR_muon(TString tight_ID, TString loose_ID, std::vect
   snu::KMuon muon = hnloose.at(0);
   if(muon.Pt() < 30) return;
   
-  bool IsThisTight = PassID(muon, tight_ID) && (muon.RelMiniIso() < 0.20);
+  bool IsThisTight = PassID(muon, tight_ID) && (muon.PFRelMiniIsoRho() < 0.20);
   TString current_name = tight_ID + "FR";
   FillDenAndNum(current_name, muon, weight, IsThisTight);
   
@@ -356,7 +356,7 @@ void HN_pair_fake::Measure_FR_electron(TString tight_ID, TString loose_ID, std::
   snu::KElectron electron = hnloose.at(0);
   if(electron.Pt() < 30) return;
   
-  bool IsThisTight = PassID(electron, tight_ID) && (electron.PFRelMiniIso() < 0.10);
+  bool IsThisTight = PassID(electron, tight_ID) && (electron.PFRelMiniIso(false) < 0.10);
   TString current_name = tight_ID + "FR";
   FillDenAndNum(current_name, electron, weight, IsThisTight);
 
@@ -368,7 +368,7 @@ void HN_pair_fake::FillDenAndNum(TString prefix, snu::KMuon muon, double thiswei
   float ptarray [] = {30., 40., 50., 100., 150., 200., 300., 400., 500., 600., 700., 800., 900., 1000.};
   int n_eta = 3, n_pt = 13;
   double TightISO = 0.2;
-  double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso()-TightISO) ) );
+  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
   
   FillHist(prefix+"_events_pt_vs_eta_L", conept, fabs(muon.Eta()), thisweight, ptarray, n_pt, etaarray, n_eta);
   
@@ -384,7 +384,7 @@ void HN_pair_fake::FillDenAndNum(TString prefix, snu::KElectron electron, double
   float ptarray [] = {30., 40., 50., 100., 150., 200., 300., 400., 500., 600., 700., 800., 900., 1000.};
   int n_eta = 3, n_pt = 13;
   double TightISO = 0.1;
-  double conept = electron.Pt()*(1 + max(0.,(electron.PFRelMiniIso()-TightISO) ) );
+  double conept = electron.Pt()*(1 + max(0.,(electron.PFRelMiniIso(false)-TightISO) ) );
   
   FillHist(prefix+"_events_pt_vs_eta_L", conept, fabs(electron.SCEta()), thisweight, ptarray, n_pt, etaarray, n_eta);
 

@@ -108,7 +108,7 @@ void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KMuon> loose_mu_noMiniiso = GetMuons("MUON_SUSY_VETO",true);
   std::vector<snu::KMuon> loose_mu_central;
   for(unsigned int i = 0; i < loose_mu_noMiniiso.size(); i++){
-    if(loose_mu_noMiniiso.at(i).RelMiniIso() < 0.6) loose_mu_central.push_back(loose_mu_noMiniiso.at(i));
+    if(loose_mu_noMiniiso.at(i).PFRelMiniIsoRho() < 0.6) loose_mu_central.push_back(loose_mu_noMiniiso.at(i));
   }
 
   std::vector<snu::KMuon> loosest_mu = GetMuons("MUON_SUSY_VETO",true);
@@ -128,7 +128,7 @@ void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
   for(int i = 0; i < 10; i ++){
     std::vector<snu::KMuon> this_mu;
     for(int j = 0; j < loosest_mu.size(); j++){
-      if(loosest_mu.at(j).RelMiniIso() < reliso_cut[reliso_i[i]] && fabs(loosest_mu.at(j).dXY()) < dxy_cut[dxy_i[i]] && fabs(loosest_mu.at(j).dZ()) < dz_cut[dz_i[i]]
+      if(loosest_mu.at(j).PFRelMiniIsoRho() < reliso_cut[reliso_i[i]] && fabs(loosest_mu.at(j).dXY()) < dxy_cut[dxy_i[i]] && fabs(loosest_mu.at(j).dZ()) < dz_cut[dz_i[i]]
          && fabs(loosest_mu.at(j).dXYSig()) < dxy_sip_cut[dxy_sip_i[i]]){
 	this_mu.push_back(loosest_mu.at(j));
       }//if pass id cuts
@@ -241,8 +241,8 @@ void Muon_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::vecto
   
 
   double this_weight = weight*pileup_reweight;
-  bool IsThisTight = PassID( muon, tight_ID) && (muon.RelMiniIso() < 0.2);
-  double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso() - 0.2) ) );
+  bool IsThisTight = PassID( muon, tight_ID) && (muon.PFRelMiniIsoRho() < 0.2);
+  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho() - 0.2) ) );
 
   
   double AwayjetPt = 40.;
@@ -328,7 +328,7 @@ void Muon_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<s
     std::vector< snu::KMuon > tightmuons;
     if(tightmuons_noiso.size() > 0){
       for(unsigned int i_mu_noiso = 0; i_mu_noiso < tightmuons_noiso.size(); i_mu_noiso++){
-	if(tightmuons_noiso.at(i_mu_noiso).RelMiniIso() < 0.2) tightmuons.push_back(tightmuons_noiso.at(i_mu_noiso)) ;
+	if(tightmuons_noiso.at(i_mu_noiso).PFRelMiniIsoRho() < 0.2) tightmuons.push_back(tightmuons_noiso.at(i_mu_noiso)) ;
       }
     }
     
@@ -420,7 +420,7 @@ void Muon_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<s
 	//==== 2) W
 	if(loose_mu.size() ==1){
 	  double MTval = AnalyzerCore::MT( loose_mu.at(0), metvec );
-	  double current_conept = loose_mu.at(0).Pt()*(1 + max(0.,(loose_mu.at(0).RelMiniIso()-0.2) ) );
+	  double current_conept = loose_mu.at(0).Pt()*(1 + max(0.,(loose_mu.at(0).PFRelMiniIsoRho()-0.2) ) );
 	  
 	  if((MTval > 60.) && (MTval < 100.)){
 	    FillHist(ThisTrigger + "_Ptcone_MET_inclusive_loose", current_conept, weight_noID, 0., 200., 200);
@@ -530,8 +530,8 @@ void Muon_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<s
     
   double this_weight = weight*pileup_reweight;
   
-  bool IsThisTight = PassID( muon, tight_ID) && (muon.RelMiniIso() < 0.2);
-  double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso() - 0.2) ) );
+  bool IsThisTight = PassID( muon, tight_ID) && (muon.PFRelMiniIsoRho() < 0.2);
+  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho() - 0.2) ) );
   
   int awayjet_syst_n = 11;
   double awayjet_pt[] = {40., 20., 30., 60}; //away jet pt cuts for systematics, central value is 40 GeV 
@@ -607,7 +607,7 @@ void Muon_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<s
 	    cout << "EventNumber = " << Evt_current.EventNumber() << endl;
 	    cout << "trigger = " << current_trigger << endl;
 	    cout << "muon.Pt() = " << muon.Pt() << endl;
-	    cout << "muon.RelIso04() = " << muon.RelMiniIso() << endl;
+	    cout << "muon.RelIso04() = " << muon.PFRelMiniIsoRho() << endl;
 	    cout << "muon.dXYSig() = " << muon.dXYSig() << endl;
 	    cout << "jet.Pt() = " << jet.Pt() << endl;
 	    cout << "AwayjetPt = " << Awayjet_Pt_cut << endl;
@@ -712,16 +712,16 @@ void Muon_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_ID, s
       for(unsigned int j=0; j<muons_loosest.size(); j++){
 	snu::KMuon this_muon = muons_loosest.at(j);
 	this_muon.SetPtEtaPhiM( this_muon.Pt()*this_muon.PtShiftedUp(), this_muon.Eta(), this_muon.Phi(), this_muon.M() );
-	double new_RelIso = this_muon.RelMiniIso()/this_muon.PtShiftedUp();
-	this_muon.SetRelMiniIso(new_RelIso);
+	double new_RelIso = this_muon.PFRelMiniIsoRho()/this_muon.PtShiftedUp();
+	this_muon.SetRelMiniIsoRho(new_RelIso);
 	if( this_muon.Pt() >= 10. && new_RelIso < this_MuonLooseRelIso ) muons.push_back( this_muon );
       }
       //==== Veto Leptons
       for(unsigned int j=0; j<muons_veto_loosest.size(); j++){
 	snu::KMuon this_muon = muons_veto_loosest.at(j);
 	this_muon.SetPtEtaPhiM( this_muon.Pt()*this_muon.PtShiftedUp(), this_muon.Eta(), this_muon.Phi(), this_muon.M() );
-	double new_RelIso = this_muon.RelMiniIso()/this_muon.PtShiftedUp();
-	this_muon.SetRelMiniIso(new_RelIso);
+	double new_RelIso = this_muon.PFRelMiniIsoRho()/this_muon.PtShiftedUp();
+	this_muon.SetRelMiniIsoRho(new_RelIso);
 	if( this_muon.Pt() >= 5. && new_RelIso < this_MuonVetoRelIso ) muons_veto.push_back( this_muon );
       }
     }
@@ -730,16 +730,16 @@ void Muon_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_ID, s
       for(unsigned int j=0; j<muons_loosest.size(); j++){
 	snu::KMuon this_muon = muons_loosest.at(j);
 	this_muon.SetPtEtaPhiM( this_muon.Pt()*this_muon.PtShiftedDown(), this_muon.Eta(), this_muon.Phi(), this_muon.M() );
-	double new_RelIso = this_muon.RelMiniIso()/this_muon.PtShiftedDown();
-	this_muon.SetRelMiniIso(new_RelIso);
+	double new_RelIso = this_muon.PFRelMiniIsoRho()/this_muon.PtShiftedDown();
+	this_muon.SetRelMiniIsoRho(new_RelIso);
 	if( this_muon.Pt() >= 10. && new_RelIso < this_MuonLooseRelIso ) muons.push_back( this_muon );
       }
       //==== Veto Leptons
       for(unsigned int j=0; j<muons_veto_loosest.size(); j++){
 	snu::KMuon this_muon = muons_veto_loosest.at(j);
 	this_muon.SetPtEtaPhiM( this_muon.Pt()*this_muon.PtShiftedDown(), this_muon.Eta(), this_muon.Phi(), this_muon.M() );
-	double new_RelIso = this_muon.RelMiniIso()/this_muon.PtShiftedDown();
-	this_muon.SetRelMiniIso(new_RelIso);
+	double new_RelIso = this_muon.PFRelMiniIsoRho()/this_muon.PtShiftedDown();
+	this_muon.SetRelMiniIsoRho(new_RelIso);
 	if( this_muon.Pt() >= 5. && new_RelIso < this_MuonVetoRelIso ) muons_veto.push_back( this_muon );
       }
     }
@@ -748,12 +748,12 @@ void Muon_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_ID, s
       //==== Signal Leptons
       for(unsigned int j=0; j<muons_loosest.size(); j++){
 	snu::KMuon this_muon = muons_loosest.at(j);
-	if( this_muon.Pt() >= 10. && this_muon.RelMiniIso() < this_MuonLooseRelIso ) muons.push_back( this_muon );
+	if( this_muon.Pt() >= 10. && this_muon.PFRelMiniIsoRho() < this_MuonLooseRelIso ) muons.push_back( this_muon );
       }
       //==== Veto Leptons
       for(unsigned int j=0; j<muons_veto_loosest.size(); j++){
 	snu::KMuon this_muon = muons_veto_loosest.at(j);
-	if( this_muon.Pt() >= 5. && this_muon.RelMiniIso() < this_MuonVetoRelIso ) muons_veto.push_back( this_muon );
+	if( this_muon.Pt() >= 5. && this_muon.PFRelMiniIsoRho() < this_MuonVetoRelIso ) muons_veto.push_back( this_muon );
       }
     }
     //std::sort(muons.begin(), muons.end(), MuonPtComparing);
@@ -892,7 +892,7 @@ void Muon_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_ID, s
     //Muon ID scale-factor, ID SF is applied only for tight muon not for loose
     //---------------------------------------------
     
-    bool IsThisTight = PassID( muon, tight_ID) && (muon.RelMiniIso() < 0.2);
+    bool IsThisTight = PassID( muon, tight_ID) && (muon.PFRelMiniIsoRho() < 0.2);
     
     double muon_SF = 1.;
     double MuTrkEffSF =  mcdata_correction->MuonTrackingEffScaleFactor(hnloose);
@@ -907,7 +907,7 @@ void Muon_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_ID, s
     double this_weight = weight*pileup_reweight*SFs;
     
     if(DijetPrompt && (METauto > 80 || MTval > 25) ) continue; //return;//give event cut for MC subtraction case
-    double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso()-0.2) ) );
+    double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-0.2) ) );
     
     double AwayjetPt = 40.;
     bool histfilled = false; 
@@ -946,7 +946,7 @@ double Muon_FR_cal_all::GetTriggerWeightByPtRange(TString hltname, vector<double
 
     if(SafePt && PassTrigger(hltname)){
       double TightISO = 0.2;
-      double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso()-TightISO) ) );
+      double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
 
       if(conept >= min_pt_cone && conept < max_pt_cone){
         if(hltname=="HLT_Mu20"){
@@ -989,7 +989,7 @@ void Muon_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double this
   float ptarray_2 [] = {10.,15.,40.,200.};
   
   double TightISO = 0.2;
-  double conept = muon.Pt()*(1 + max(0.,(muon.RelMiniIso()-TightISO) ) );
+  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
 
   /*
   FillHist(prefix+"_eta_F0", muon.Eta(), thisweight, -3., 3., 30);

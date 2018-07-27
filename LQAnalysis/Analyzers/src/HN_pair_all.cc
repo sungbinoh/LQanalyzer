@@ -303,7 +303,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KElectron> electrons_susy_veto = GetElectrons("ELECTRON_SUSY_HNPAIR_VETO");
   std::vector<snu::KElectron> electrons_veto;
   for(int i = 0; i < electrons_susy_veto.size(); i++){
-    if( electrons_susy_veto.at(i).PFRelMiniIso() < 0.60) {
+    if( electrons_susy_veto.at(i).PFRelMiniIso(false) < 0.60) {
       electrons_veto.push_back(electrons_susy_veto.at(i));
     }
   }
@@ -314,7 +314,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
   std::vector<snu::KMuon> muons_veto;
   for(int i = 0; i < muons_susy_veto.size(); i++){
-    if( muons_susy_veto.at(i).RelMiniIso() < 0.60) muons_veto.push_back(muons_susy_veto.at(i));
+    if( muons_susy_veto.at(i).PFRelMiniIsoRho() < 0.60) muons_veto.push_back(muons_susy_veto.at(i));
   }
   CorrectedMETRochester(muons_veto);
   int N_veto_muon = muons_veto.size();
@@ -375,11 +375,11 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     //if(abs(muon_Nocut.at(i).MotherPdgId()) == 15) cout << muon_Nocut.at(i).MotherPdgId() << endl;
     bool tau_pass = !tau_veto || abs(muon_Nocut.at(i).MotherPdgId()) != 15;
     bool pass_eta_cut = fabs(muon_Nocut.at(i).Eta()) < 1.4 || fabs(muon_Nocut.at(i).Eta()) > 1.6;
-    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).RelMiniIso() < 0.20) && tau_pass){
+    if( !NonPromptRun && PassID(muon_Nocut.at(i), muon_tight_id) && (muon_Nocut.at(i).PFRelMiniIsoRho() < 0.20) && tau_pass){
       if(pass_eta_cut) muons.push_back(muon_Nocut.at(i));
       muons_SS.push_back(muon_Nocut.at(i));
     }
-    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).RelMiniIso() < 0.60) && tau_pass){
+    if( NonPromptRun  && PassID(muon_Nocut.at(i), muon_loose_id) && (muon_Nocut.at(i).PFRelMiniIsoRho() < 0.60) && tau_pass){
       if(pass_eta_cut) muons.push_back(muon_Nocut.at(i));//store loose muon for fake bkg
       muons_SS.push_back(muon_Nocut.at(i));
     }
@@ -419,8 +419,8 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     if(N_electron_SS == 2 && N_veto_ele == 2 && N_veto_muon == 0){
       Leptons.push_back(electrons_SS.at(0));
       Leptons.push_back(electrons_SS.at(1));
-      if(PassID(electrons_SS.at(0), electron_tight_id) && (electrons_SS.at(0).PFRelMiniIso() < 0.10) ) lep_1_tight = true;
-      if(PassID(electrons_SS.at(1), electron_tight_id) && (electrons_SS.at(1).PFRelMiniIso() < 0.10) ) lep_2_tight = true;
+      if(PassID(electrons_SS.at(0), electron_tight_id) && (electrons_SS.at(0).PFRelMiniIso(false) < 0.10) ) lep_1_tight = true;
+      if(PassID(electrons_SS.at(1), electron_tight_id) && (electrons_SS.at(1).PFRelMiniIso(false) < 0.10) ) lep_2_tight = true;
       
       if(Leptons.at(0).Charge() == Leptons.at(1).Charge()){
 	weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
@@ -431,8 +431,8 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     else if(N_muon_SS == 2 && N_veto_muon == 2 && N_veto_ele == 0){
       Leptons.push_back(muons_SS.at(0));
       Leptons.push_back(muons_SS.at(1));
-      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).RelMiniIso() < 0.20) ) lep_1_tight = true;
-      if(PassID(muons_SS.at(1), muon_tight_id) && (muons_SS.at(1).RelMiniIso() < 0.20) ) lep_2_tight = true;
+      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).PFRelMiniIsoRho() < 0.20) ) lep_1_tight = true;
+      if(PassID(muons_SS.at(1), muon_tight_id) && (muons_SS.at(1).PFRelMiniIsoRho() < 0.20) ) lep_2_tight = true;
       
       if(Leptons.at(0).Charge() == Leptons.at(1).Charge()) weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
       //else return;
@@ -440,8 +440,8 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
     else if(N_muon_SS == 1 && N_veto_muon ==1 && N_electron_SS == 1 && N_veto_ele == 1){
       Leptons.push_back(electrons_SS.at(0));
       Leptons.push_back(muons_SS.at(0));
-      if(PassID(electrons_SS.at(0), electron_tight_id) && (electrons_SS.at(0).PFRelMiniIso() < 0.10) ) lep_1_tight = true;
-      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).RelMiniIso() < 0.20) ) lep_2_tight = true;
+      if(PassID(electrons_SS.at(0), electron_tight_id) && (electrons_SS.at(0).PFRelMiniIso(false) < 0.10) ) lep_1_tight = true;
+      if(PassID(muons_SS.at(0), muon_tight_id) && (muons_SS.at(0).PFRelMiniIsoRho() < 0.20) ) lep_2_tight = true;
       
       if(Leptons.at(0).Charge() == Leptons.at(1).Charge()) weight_fake = GetFRWeight_SB(Leptons, lep_1_tight, lep_2_tight);
       //else return;
