@@ -121,7 +121,8 @@ void HN_pair_all::InitialiseAnalysis() throw( LQError ) {
   
   TString lqdir = getenv("LQANALYZER_DIR");
 
-  TFile *file_data_fake = new TFile( lqdir+"/data/Fake/80X/FakeRate_QCD.root");
+  //TFile *file_data_fake = new TFile( lqdir+"/data/Fake/80X/FakeRate_QCD.root");
+  TFile *file_data_fake = new TFile( lqdir+"/data/Fake/80X/Data_driven_FR_syst_DoubleMuon_Nvtx_Reweight.root");
   TIter next(gDirectory->GetListOfKeys());
   TKey *key;
   vector<TString> histnames;
@@ -139,14 +140,46 @@ void HN_pair_all::InitialiseAnalysis() throw( LQError ) {
   tempDir->cd();  
 
   Message("saving hist strings", INFO);
+
   for(int i = 0; i < histnames_2D.size(); i ++){
     Message(histnames_2D.at(i), INFO);
     hist_data_driven[histnames_2D.at(i)] = (TH2D*)file_data_fake -> Get(histnames_2D.at(i))->Clone();
   }
-  Message("saving hist strings ends", INFO);
+
+  //Message("saving hist strings ends", INFO);
   file_data_fake -> Close();
   delete file_data_fake;
+
+
+  // -- electron fake rate
+  TFile *file_data_fake_e = new TFile( lqdir+"/data/Fake/80X/FakeRate_QCD.root");
+  TIter next_e(gDirectory->GetListOfKeys());
+  TKey *key_e;
+  vector<TString> histnames_e;
+  vector<TString> histnames_2D_e;
+  while ((key_e = (TKey*)next_e())) {
+    TClass *cl = gROOT->GetClass(key_e->GetClassName());
+    if (cl->InheritsFrom("TH2D")) histnames_2D_e.push_back(key_e -> GetName());
+    if (!cl->InheritsFrom("TH1")) continue;
+    histnames_e.push_back(key_e -> GetName());
+  }
+  gROOT->cd();
+  tempDir->cd();
   
+  Message("saving hist strings", INFO);
+  for(int i = 0; i < histnames_2D_e.size(); i ++){
+    Message(histnames_2D_e.at(i), INFO);
+    hist_data_driven[histnames_2D_e.at(i)] = (TH2D*)file_data_fake_e -> Get(histnames_2D_e.at(i))->Clone();
+  }
+  Message("saving hist strings ends", INFO);
+
+  file_data_fake_e -> Close();
+  delete file_data_fake_e;
+
+
+
+
+  // -- Charge flip probability
   TFile *file_data_CF = new TFile( lqdir+"/data/Fake/80X/CF_result_MC.root");
   TIter next_CF(gDirectory->GetListOfKeys());
   TKey *key_CF;
@@ -176,6 +209,7 @@ void HN_pair_all::InitialiseAnalysis() throw( LQError ) {
 }
 
 void HN_pair_all::ExecuteEvents()throw( LQError ){
+  //ListTriggersAvailable();
   
   /// Apply the gen weight 
   if(!isData) weight*=MCweight;
@@ -280,7 +314,7 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KMuon> muons_susy_veto = GetMuons("MUON_SUSY_VETO");
   std::vector<snu::KMuon> muons_veto;
   for(int i = 0; i < muons_susy_veto.size(); i++){
-    if( muons_susy_veto.at(i).RelMiniIso() < 0.40) muons_veto.push_back(muons_susy_veto.at(i));
+    if( muons_susy_veto.at(i).RelMiniIso() < 0.60) muons_veto.push_back(muons_susy_veto.at(i));
   }
   CorrectedMETRochester(muons_veto);
   int N_veto_muon = muons_veto.size();
@@ -480,10 +514,9 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   Control_region_4("SS_EMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
   Control_region_4("SS_DiEle", diele_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, NonPromptRun);
  
-  //Z ll + 1 fake l
-  Control_region_5("SS_DiMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, electron_tight_id, muon_tight_id, NonPromptRun);
-  Control_region_5("SS_DiEle", diele_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, electron_tight_id, muon_tight_id, NonPromptRun);
-
+  //SS emu no Njet cut
+  Control_region_5("SS_EMu", mu50_pass, jets_lepveto, fatjets, electrons_SS, muons_SS, N_electron_SS, N_veto_ele, N_muon_SS, N_veto_muon, electron_tight_id, muon_tight_id, NonPromptRun);
+  
   /*
   // -- check with s-ch ID
   Signal_region_1("DiMu", mu50_pass, jets_lepveto, fatjets, electron_sch_tight, muon_sch_tight, electron_sch_tight.size(), N_veto_ele, muon_sch_tight.size(), N_veto_muon, false);
@@ -1026,7 +1059,6 @@ void HN_pair_all::Control_region_2(TString channel, bool trigger_pass, std::vect
   
   if(debug) cout << "2"<< endl;
 
-
   std::vector<snu::KJet> jets_pt40;
   for(int i = 0; i < jets.size(); i++){
     if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
@@ -1240,7 +1272,7 @@ void HN_pair_all::Control_region_4(TString channel, bool trigger_pass, std::vect
 
 void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, 
 				   TString electron_tight_id, TString muon_tight_id, bool NonPromptRun){
-  
+  //SS emu CR for fake control
   //cout << "start Control_region_5" << endl;
   
   if(!trigger_pass) return;
@@ -1252,37 +1284,19 @@ void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vect
   bool lep_1_tight, lep_2_tight, lep_3_tight;
   int N_electron_CLH, N_muon_CLH;
   std::vector<KLepton> Leptons;
-  if(channel.Contains("DiEle")){//3e
-    if(N_electron == 3 && N_veto_ele == 3 ){
-      //cout << "0.1" << endl;
-
+  if(channel.Contains("EMu")){
+    if(N_muon == 1 && N_veto_muon ==1 && N_electron == 1 && N_veto_ele == 1){
       pass_N_lep =true;
-      Leptons.push_back(electrons.at(0));
-      Leptons.push_back(electrons.at(1));
-      Leptons.push_back(electrons.at(2));
-      
-      lep_1_tight = ( PassID(electrons.at(0), electron_tight_id) && (electrons.at(0).PFRelMiniIso() < 0.10) );
-      lep_2_tight = ( PassID(electrons.at(1), electron_tight_id) && (electrons.at(1).PFRelMiniIso() < 0.10) );
-      lep_3_tight = ( PassID(electrons.at(2), electron_tight_id) && (electrons.at(2).PFRelMiniIso() < 0.10) );
-      N_electron_CLH = 2;
-      N_muon_CLH = 0;
-    }
-  }
-  else if(channel.Contains("DiMu")){//3mu
-    if(N_muon == 3 && N_veto_muon == 3){
-      //cout << "0.2" << endl;
-
-      pass_N_lep =true;
-      Leptons.push_back(muons.at(0));
-      Leptons.push_back(muons.at(1));
-      Leptons.push_back(muons.at(2));
-
-      lep_1_tight = ( PassID(muons.at(0), muon_tight_id) && (muons.at(0).RelMiniIso() < 0.20) );
-      lep_2_tight = ( PassID(muons.at(1), muon_tight_id) && (muons.at(1).RelMiniIso() < 0.20) );
-      lep_3_tight = ( PassID(muons.at(2), muon_tight_id) && (muons.at(2).RelMiniIso() < 0.20) );
-      
-      N_electron_CLH = 0;
-      N_muon_CLH = 2;
+      FillHist("signal_eff", 7.5, weight, 0., 40., 40);
+      if(electrons.at(0).Pt() > muons.at(0).Pt()){
+	Leptons.push_back(electrons.at(0));
+	Leptons.push_back(muons.at(0));
+      }
+      else{
+	Leptons.push_back(muons.at(0));
+	Leptons.push_back(electrons.at(0));
+      }
+      //cout << "Leptons.at(0).LeptonFlavour() : " << Leptons.at(0).LeptonFlavour() << ", Leptons.at(1).LeptonFlavour() : " << Leptons.at(1).LeptonFlavour() << endl;
     }
   }
   else pass_N_lep = false;
@@ -1290,42 +1304,16 @@ void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vect
 
   //cout << "1" << endl;
 
-  
-  double Lep_1st_Pt, Lep_2nd_Pt, Lep_3rd_Pt;
+  double Lep_1st_Pt, Lep_2nd_Pt;
   Lep_1st_Pt = Leptons.at(0).Pt();
   Lep_2nd_Pt = Leptons.at(1).Pt();
-  Lep_3rd_Pt = Leptons.at(2).Pt();
-
-  if(Lep_1st_Pt < 65 || Lep_2nd_Pt < 65 || Lep_3rd_Pt < 65) return;
-
+  
+  if(Lep_1st_Pt < 65 || Lep_2nd_Pt < 65) return;
+  
   std::vector<snu::KJet> jets_pt40;
   for(int i = 0; i < jets.size(); i++){
     if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
   }
-  
-  double min_Z_window = 9999.;
-  int min_Z_lep_1, min_Z_lep_2;
-  for(unsigned int i = 0; i < 3; i++){
-    for(unsigned int j = 0; j < 3; j++){
-      if(i < j){
-	double mll = (Leptons.at(i) + Leptons.at(j)).M();
-	double mass_dif = fabs(mll - 91.2);
-	if(mass_dif < min_Z_window){
-	  min_Z_window = mass_dif;
-	  min_Z_lep_1 = i;
-	  min_Z_lep_2 = j;
-	}
-      }
-    }
-  }
-  
-  //cout << "2" << endl;
-
-  if(min_Z_window > 20) return;
-  
-  std::vector<KLepton> Leptons_CLH;
-  Leptons_CLH.push_back(Leptons.at(min_Z_lep_1));
-  Leptons_CLH.push_back(Leptons.at(min_Z_lep_2));
   
   //cout << "3" << endl;
 
@@ -1338,15 +1326,12 @@ void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vect
   //if(nbjet != 0) return;
   // -- fill cutflow
  
-  if(channel.Contains("DiEle")){
+
+  if(channel.Contains("EMu")){
     FillHist("signal_eff", 32.5, weight, 0., 40., 40);
   }
-  else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 33.5, weight, 0., 40., 40);
-  }
   else return;
- 
-       
+  
        
   double trigger_sf = 1.; // 1st muon Pt > 60 GeV with HLT_Mu50 would lead to trigger SF ~ 1. Approx. for now
   double muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", muons, 0);
@@ -1361,16 +1346,16 @@ void HN_pair_all::Control_region_5(TString channel, bool trigger_pass, std::vect
   }
 
   if(NonPromptRun){
-    double fakeweight = GetFRWeight_tri_SB(Leptons, lep_1_tight, lep_2_tight, lep_3_tight, false);
-    current_weight = fakeweight;
+    current_weight = weight_fake;
     cout << "CR5 FR weight : " << current_weight << endl;
   }
 
   //cout << "CL" << endl;
   
-  FillCLHist(hnpairmm, "CR5_" + channel, eventbase->GetEvent(), Leptons_CLH, N_electron_CLH, N_muon_CLH, jets_pt40, fatjets, current_weight, nbjet);
-  //if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR5_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
-
+  FillCLHist(hnpairmm, "CR5_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
+  if(channel.Contains("SS_EMu") || channel.Contains("SS_DiEle"))  FillCLHist(hnpairmm, "CR5_" + channel + "_CF", eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, weight_CF, 0);
+  
+  
 }
 
 
@@ -1503,7 +1488,7 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
     
   TString hist_name_1, hist_name_2;
   if(loose_lepColl.at(0).LeptonFlavour() == 1){//1st lepton is muon
-    hist_name_1 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    hist_name_1 = "SingleMuonTrigger_Dijet_central_all_MUON_SUSY_VETO_central_Nvtx_reweight_events_pt_cone_vs_eta_F";
     lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(0).LeptonFlavour() == 2){//1st lepton is electron
@@ -1513,7 +1498,7 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
   else return 0.;
 
   if(loose_lepColl.at(1).LeptonFlavour() == 1){//2nd lepton is muon
-    hist_name_2 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    hist_name_2 = "SingleMuonTrigger_Dijet_central_all_MUON_SUSY_VETO_central_Nvtx_reweight_events_pt_cone_vs_eta_F";
     lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(1).LeptonFlavour() == 2){//2nd lepton is electron
@@ -1525,20 +1510,20 @@ double HN_pair_all::GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_
   double fr1 = 0.;
   double fr2 = 0.;
   
-  if(lep_1_pt < 1000){
+  if(lep_1_pt < 110.){
     int binx = hist_data_driven[hist_name_1]->FindBin(lep_1_ptcone, fabs(loose_lepColl.at(0).Eta()));
     fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
   }
   else{
-    int binx = hist_data_driven[hist_name_1]->FindBin(990., fabs(loose_lepColl.at(0).Eta()));
+    int binx = hist_data_driven[hist_name_1]->FindBin(100., fabs(loose_lepColl.at(0).Eta()));
     fr1 = float(hist_data_driven[hist_name_1]->GetBinContent(binx));
   }
-  if(lep_2_pt < 1000){
+  if(lep_2_pt < 110.){
     int binx = hist_data_driven[hist_name_2]->FindBin(lep_2_ptcone, fabs(loose_lepColl.at(1).Eta()));
     fr2 = float(hist_data_driven[hist_name_2]->GetBinContent(binx));
   }
   else{
-    int binx = hist_data_driven[hist_name_2]->FindBin(990., fabs(loose_lepColl.at(1).Eta()));
+    int binx = hist_data_driven[hist_name_2]->FindBin(100., fabs(loose_lepColl.at(1).Eta()));
     fr2 = float(hist_data_driven[hist_name_2]->GetBinContent(binx));
   }
 
@@ -1583,7 +1568,7 @@ double HN_pair_all::GetFRWeight_tri_SB(std::vector<KLepton> loose_lepColl, bool 
   
   TString hist_name_1, hist_name_2, hist_name_3;
   if(loose_lepColl.at(0).LeptonFlavour() == 1){//1st lepton is muon
-    hist_name_1 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    hist_name_1 = "SingleMuonTrigger_Dijet_central_all_MUON_SUSY_VETO_central_Nvtx_reweight_events_pt_cone_vs_eta_F";
     lep_1_ptcone = loose_lepColl.at(0).Pt()*(1 + max(0.,(loose_lepColl.at(0).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(0).LeptonFlavour() == 2){//1st lepton is electron
@@ -1593,7 +1578,7 @@ double HN_pair_all::GetFRWeight_tri_SB(std::vector<KLepton> loose_lepColl, bool 
   else return 0.;
 
   if(loose_lepColl.at(1).LeptonFlavour() == 1){//2nd lepton is muon
-    hist_name_2 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    hist_name_2 = "SingleMuonTrigger_Dijet_central_all_MUON_SUSY_VETO_central_Nvtx_reweight_events_pt_cone_vs_eta_F";
     lep_2_ptcone = loose_lepColl.at(1).Pt()*(1 + max(0.,(loose_lepColl.at(1).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(1).LeptonFlavour() == 2){//2nd lepton is electron
@@ -1603,7 +1588,7 @@ double HN_pair_all::GetFRWeight_tri_SB(std::vector<KLepton> loose_lepColl, bool 
   else return 0.;
 
   if(loose_lepColl.at(2).LeptonFlavour() == 1){//3rd lepton is muon
-    hist_name_3 = "MUON_SUSY_TIGHTFR_events_pt_vs_eta_TMuon";
+    hist_name_3 = "SingleMuonTrigger_Dijet_central_all_MUON_SUSY_VETO_central_Nvtx_reweight_events_pt_cone_vs_eta_F";
     lep_3_ptcone = loose_lepColl.at(2).Pt()*(1 + max(0.,(loose_lepColl.at(2).miniRelIso() - mu_miniiso_tight) ) );
   }
   else if (loose_lepColl.at(1).LeptonFlavour() == 2){//3rd lepton is electron

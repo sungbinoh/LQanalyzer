@@ -432,7 +432,7 @@ class AnalyzerCore : public LQCycleBase {
   std::map<TString,BTagSFUtil*> MapBTagSF;
 
   //==== (Trilepton) HeavyN stuffs
-
+  void JSCorrectedMETRochester(std::vector<snu::KMuon> muall, double& OrignialMET, double& OriginalMETPhi);
   HNGenMatching *m_HNgenmatch;
 
   void PutNuPz(TLorentzVector *nu, double Pz);

@@ -30,10 +30,13 @@ sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -userflag RunFake -o /data
 
 
 #debug
+
 #sktree -a HN_pair_MM -s FLATCAT -i HNpair_MuMu_WR5000_Zp3000_HN900_official -n 1 -SIG
 #sktree -a HN_pair_all -s SKTree_DiLepSkim -i DYJets -n 1 -events 100000
 #sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -p B -fake True -userflag RunFake -n 1 # -events 100000
-#sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -p B -n 1 -events 10000
+#sktree -a HN_pair_all -S SingleMuon -s SKTree_LeptonSkim -p B -n 1 -events 1
+#sktree -a HN_pair_all -S DoubleEG -s SKTree_LeptonSkim -p B -n 1 -events 1
+
 #sktree -a HN_pair_MM -s FLATCAT -i DYJets -n 1 -events 1
 #sktree -a HN_pair_MM -s SKTree_LeptonSkim -i DYJets -n 1 -events 1
 
