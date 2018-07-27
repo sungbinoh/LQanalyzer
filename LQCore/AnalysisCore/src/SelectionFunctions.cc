@@ -37,10 +37,10 @@ bool SelectionFunctions::TriggerSelector(std::vector<TString> triggernames, std:
        it != std::vector<TString>::reverse_iterator (triggernames.begin()); 
        ++it) {
     
-    
     for (UInt_t i=0; i<inputtriggers.size(); i++) {
       TString tmpHLT = inputtriggers[i];
       //cout << tmpHLT << endl;
+      cout << tmpHLT << endl; //check triggerlist
       if ( tmpHLT.BeginsWith(*it) && triggerdecision[i] ) {
 	
 	prescaler=HLTPrescales[i]; 
