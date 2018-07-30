@@ -18,16 +18,16 @@ class Electron_FR_cal_all : public AnalyzerCore {
   virtual void EndCycle()throw( LQError );
   virtual void ClearOutputVectors()throw( LQError );
   
-  void FillDenAndNum(TString prefix, snu::KMuon muon, double thisweight, bool isTight);
-  double GetTriggerWeightByPtRange(TString hltname, vector<double> ptrange, double trigger_safe_pt, std::vector<snu::KMuon> muons, int npfjet50);
+  void FillDenAndNum(TString prefix, snu::KElectron electron, double thisweight, bool isTight);
+  double GetTriggerWeightByPtRange(TString hltname, vector<double> ptrange, double trigger_safe_pt, std::vector<snu::KElectron> electrons, int npfjet50);
       
   void InitialiseAnalysis() throw( LQError );
   void MakeHistograms();
 
   
-  void RunFakes(TString tag, TString ID, std::vector<snu::KMuon> loosemuons, bool debugging);
-  void RunFakes_ID(TString tag, TString ID, std::vector<snu::KMuon> loosemuons, bool debugging);
-  void RunFakes_subtraction(TString tag, TString ID, std::vector<snu::KMuon> loosemuons, bool debugging);
+  void RunFakes(TString tag, TString ID, std::vector<snu::KElectron> loose_el, bool debugging);
+  void RunFakes_ID(TString tag, TString ID, std::vector<snu::KElectron> loose_el, bool debugging);
+  void RunFakes_subtraction(TString tag, TString ID, std::vector<snu::KElectron> loose_el, bool debugging);
 
   
 private:

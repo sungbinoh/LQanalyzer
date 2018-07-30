@@ -115,52 +115,79 @@ void Electron_FR_cal_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KElectron> loosest_electron = GetElectrons(false, true, "ELECTRON_SUSY_HNPAIR_VETO");
     
   double reliso_cut[] = {0.6, 0.3, 0.4};
-  double dxy_b_cut[] = {0.05, 0.1, 1.0, 10.};
-  double dxy_e_cut[] = {0.1, 0.1, 1.0, 10.};
-  double dz_b_cut[] = {0.1, 1.0, 10};
-  double dz_e_cut[] = {0.2, 1.0, 10};
-  double dxy_sip_cut[] = {999., 8., 10., 15.};
+  double dxy_b_cut[] = {0.05, 0.03, 0.07, 0.09};
+  double dxy_e_cut[] = {0.1, 0.08, 0.12, 0.14};
+  double dz_b_cut[] = {0.1, 0.05, 0.15};
+  double dz_e_cut[] = {0.2, 0.15, 0.25};
+  //double dxy_sip_cut[] = {999., 8., 10., 15.};
   
   int reliso_i[]  = {1, 2, 0, 0, 0, 0, 0, 0, 0, 0};
-  int dxy_i[]     = {0, 0, 1, 2, 3, 0, 0, 0, 0, 0};
-  int dz_i[]      = {0, 0, 0, 0, 0, 1, 2, 0, 0, 0};
-  int dxy_sip_i[] = {0, 0, 0, 0, 0, 0, 0, 1, 2, 3};
+  int dxy_i[]   = {0, 0, 1, 2, 3, 0, 0, 0, 0, 0};
+  int dz_i[]    = {0, 0, 0, 0, 0, 1, 2, 0, 0, 0};
+  //int dxy_sip_i[] = {0, 0, 0, 0, 0, 0, 0, 1, 2, 3};
 
-  TString cut_string[] = {"iso_p3", "iso_p4", "dxy_p1", "dxy_3", "dxy_10", "dz_1", "dz_10", "SIP_8", "SIP_10", "SIP_15"};
+  TString cut_string[] = {"iso_p3", "iso_p4", "dxy_minus_p02", "dxy_plus_p02", "dxy_plus_p04", "dz_minus_p05", "dz_plus_p05"};
   
-  for(int i = 0; i < 10; i ++){
-    std::vector<snu::KMuon> this_mu;
-    for(int j = 0; j < loosest_mu.size(); j++){
-      if(loosest_mu.at(j).PFRelMiniIsoRho() < reliso_cut[reliso_i[i]] && fabs(loosest_mu.at(j).dXY()) < dxy_cut[dxy_i[i]] && fabs(loosest_mu.at(j).dZ()) < dz_cut[dz_i[i]]
-         && fabs(loosest_mu.at(j).dXYSig()) < dxy_sip_cut[dxy_sip_i[i]]){
-	this_mu.push_back(loosest_mu.at(j));
-      }//if pass id cuts
+  int N_cut_syst = 7;
+  for(int i = 0; i < N_cut_syst; i ++){
+    std::vector<snu::KElectron> this_el;
+    for(int j = 0; j < loosest_electron.size(); j++){
+      if(loosest_electron.at(j).PFRelMiniIso(false) < reliso_cut[reliso_i[i]] ){
+	if( fabs( loosest_electron.at(j).SCEta() ) < 1.479 && fabs(loosest_electron.at(j).dxy()) < dxy_b_cut[dxy_i[i]] && fabs(loosest_electron.at(j).dz()) < dz_b_cut[dz_i[i]]){//if berrel & passing IP cuts
+	  this_el.push_back(loosest_electron.at(j));
+	}
+	if( fabs( loosest_electron.at(j).SCEta() ) > 1.479 && fabs(loosest_electron.at(j).dxy()) < dxy_e_cut[dxy_i[i]] && fabs(loosest_electron.at(j).dz()) < dz_e_cut[dz_i[i]]){//if endcap & passing IP cuts
+	  this_el.push_back(loosest_electron.at(j));
+	}
+      }//if pass iso cut
     }//for j
     //cout << "RunFakes_ID" << endl;
-    RunFakes_ID("MUON_SUSY_TIGHT", "MUON_SUSY_VETO_" + cut_string[i], this_mu, false);
+    RunFakes_ID("ELECTRON_SUSY_HNPAIR_TIGHT", "ELECTRON_SUSY_HNPAIR_LOOSE_" + cut_string[i], this_el, false);
   }//for i
   
   //cout << "RunFakes start" << endl;
-  RunFakes("MUON_SUSY_TIGHT", "MUON_SUSY_VETO_central", loose_mu_central, false);
+  RunFakes("ELECTRON_SUSY_HNPAIR_TIGHT", "ELECTRON_SUSY_HNPAIR_LOOSE_central", loose_electron, false);
   
   
 }
 
 //function to run for loose ID systematics : FR only for away jet pt 40 GeV
-void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::vector<snu::KMuon> loose_mu, bool debugging){
+void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::vector<snu::KElectron> loose_el, bool debugging){
   std::map< TString, std::vector<double> > HLT_ptrange; //defining muon pt range for each single muon trigger
   std::map< TString, double > HLT_ptmin;
-  HLT_ptrange["HLT_Mu20_v"].push_back(35.);
-  HLT_ptrange["HLT_Mu20_v"].push_back(45.);
-  HLT_ptmin["HLT_Mu20_v"] = 23.;
 
-  HLT_ptrange["HLT_Mu27_v"].push_back(45.);
-  HLT_ptrange["HLT_Mu27_v"].push_back(80.);
-  HLT_ptmin["HLT_Mu27_v"] = 30.;
+  HLT_ptrange["HLT_Photon22_v"].push_back(40.);
+  HLT_ptrange["HLT_Photon22_v"].push_back(55.);
+  HLT_ptmin["HLT_Photon22_v"] = 25.;
+  
+  HLT_ptrange["HLT_Photon30_v"].push_back(55.);
+  HLT_ptrange["HLT_Photon30_v"].push_back(65.);
+  HLT_ptmin["HLT_Photon30_v"] = 35.;
 
-  HLT_ptrange["HLT_Mu50_v"].push_back(80.);
-  HLT_ptrange["HLT_Mu50_v"].push_back(9999.);
-  HLT_ptmin["HLT_Mu50_v"] = 55.;
+  HLT_ptrange["HLT_Photon36_v"].push_back(65.);
+  HLT_ptrange["HLT_Photon36_v"].push_back(85.);
+  HLT_ptmin["HLT_Photon36_v"] = 40.;
+
+  HLT_ptrange["HLT_Photon50_v"].push_back(85.);
+  HLT_ptrange["HLT_Photon50_v"].push_back(120.);
+  HLT_ptmin["HLT_Photon50_v"] = 55.;
+
+  HLT_ptrange["HLT_Photon75_v"].push_back(120.);
+  HLT_ptrange["HLT_Photon75_v"].push_back(150.);
+  HLT_ptmin["HLT_Photon75_v"] = 80.;
+
+  HLT_ptrange["HLT_Photon90_v"].push_back(150.);
+  HLT_ptrange["HLT_Photon90_v"].push_back(195.);
+  HLT_ptmin["HLT_Photon90_v"] = 100.;
+
+  HLT_ptrange["HLT_Photon120_v"].push_back(195.);
+  HLT_ptrange["HLT_Photon120_v"].push_back(280.);
+  HLT_ptmin["HLT_Photon120_v"] = 130.;
+
+  HLT_ptrange["HLT_Photon175_v"].push_back(280.);
+  HLT_ptrange["HLT_Photon175_v"].push_back(9999.);
+  HLT_ptmin["HLT_Photon175_v"] = 185.;
+  
   
   std::vector<TString> AllHLTs;
   for(std::map< TString, std::vector<double> >::iterator it=HLT_ptrange.begin(); it!=HLT_ptrange.end(); it++){
@@ -169,7 +196,7 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
   
   bool DijetFake = std::find(k_flags.begin(), k_flags.end(), "DijetFake") != k_flags.end(); //flag for QCD MC fr cal
   bool DijetPrompt = std::find(k_flags.begin(), k_flags.end(), "DijetPrompt") != k_flags.end(); //flag for MC subtraction
-
+  
   std::vector<snu::KJet> jets = GetJets("JET_HN");
   int For_HLT_Mu3_PFJet40_v = 0;
   int n_bjets = 0;
@@ -177,7 +204,7 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
     if( IsBTagged(jets.at(i), snu::KJet::CSVv2, snu::KJet::Medium) ) n_bjets++;
     if( jets.at(i).Pt() > 50. ) For_HLT_Mu3_PFJet40_v++;
   }
-
+  
   float pileup_reweight=(1.0);
   if(!k_isdata){
     pileup_reweight = mcdata_correction->CatPileupWeight(eventbase->GetEvent(),0);
@@ -186,24 +213,24 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
   if(debugging) cout << "jets.size() : " << jets.size() << endl;
   if(jets.size() < 1) return; // Njet >= 1
   
-  std::vector<snu::KMuon> hnloose;//keep only prompt muon for MC subtraction, keep only fake muon for QCD fr cal
+  std::vector<snu::KElectron> hnloose;//keep only prompt electron for MC subtraction, keep only fake electron for QCD fr cal
   hnloose.clear();
-
-  if(debugging) cout << "loose_mu.size() : " << loose_mu.size() << endl;
-  if(loose_mu.size() != 1) return;
-
-  for(unsigned int i=0; i<loose_mu.size(); i++){
-    if(k_isdata) hnloose.push_back( loose_mu.at(i) );
+  
+  if(debugging) cout << "loose_el.size() : " << loose_el.size() << endl;
+  if(loose_el.size() != 1) return;
+  
+  for(unsigned int i=0; i<loose_el.size(); i++){
+    if(k_isdata) hnloose.push_back( loose_el.at(i) );
     if(!k_isdata){
       if(DijetFake){
-	if( !TruthMatched( loose_mu.at(i)) ){
-          hnloose.push_back( loose_mu.at(i) );
+	if( !TruthMatched( loose_el.at(i)) ){
+          hnloose.push_back( loose_el.at(i) );
         }
       }
       else if(DijetPrompt){
-        if( TruthMatched( loose_mu.at(i)) ){
-	  //if(loose_mu.at(i).GetType() == 1 || loose_mu.at(i).GetType() == 8){  
-	  hnloose.push_back( loose_mu.at(i) );
+        if( TruthMatched( loose_el.at(i)) ){
+	  //if(loose_el.at(i).GetType() == 1 || loose_el.at(i).GetType() == 8){  
+	  hnloose.push_back( loose_el.at(i) );
 	}
       }
       else{
@@ -215,10 +242,10 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
   if(debugging) cout << "hnloose.size() : " << hnloose.size() << endl;
   if(hnloose.size() != 1) return;
   
-  snu::KMuon muon = hnloose.at(0);
+  snu::KElectron electron = hnloose.at(0);
   TLorentzVector metvec;
   metvec.SetPtEtaPhiE( METauto, 0, METphiauto, METauto);
-  double MTval = AnalyzerCore::MT( muon, metvec );
+  double MTval = AnalyzerCore::MT( electron, metvec );
   if(debugging) cout << "METauto : " << METauto << ", MTval : " << MTval << endl;
   
   TString current_trigger;
@@ -244,9 +271,8 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
   
 
   double this_weight = weight*pileup_reweight;
-  bool IsThisTight = PassID( muon, tight_ID) && (muon.PFRelMiniIsoRho() < 0.2);
-  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho() - 0.2) ) );
-
+  bool IsThisTight = PassID( muon, tight_ID) && (electron.PFRelMiniIso(false) < 0.1);
+  double conept = electron.Pt()*(1 + max(0.,(muon.PFRelMiniIso(false) - 0.1) ) );
   
   double AwayjetPt = 40.;
   bool histfilled = false;
@@ -256,29 +282,29 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
     if(debugging) cout << "AwayjetPt : " << AwayjetPt << ", jet.Pt(): " << jet.Pt() << ". jets.size() : " << jets.size() << endl;
     if( jet.Pt() < AwayjetPt ) continue;
 
-    double dPhi = muon.DeltaPhi( jet );
+    double dPhi = electron.DeltaPhi( jet );
 
     bool UseEvent = false;
-    if(debugging) cout << "dPhi : " << dPhi << ". (jet.Pt()/muon.Pt() : " << (jet.Pt()/muon.Pt()) << endl;
-    UseEvent = (dPhi > 2.5) && (jet.Pt()/muon.Pt() > 1.);
+    if(debugging) cout << "dPhi : " << dPhi << ". (jet.Pt()/electron.Pt() : " << (jet.Pt()/electron.Pt()) << endl;
+    UseEvent = (dPhi > 2.5) && (jet.ChargedEMEnergyFraction() < 0.65) && (jet.Pt()/electron.Pt() > 1.0);
     
     if(debugging) cout <<  "UseEvent : " << UseEvent << endl;
     
     if( UseEvent ){
-      TString current_hist_name = "SingleMuonTrigger_Dijet_Awayjet_" + TString::Itoa(AwayjetPt,10)+"_all_" + loose_ID;
-      //FillDenAndNum("SingleMuonTrigger_Dijet_Awayjet_"+TString::Itoa(AwayjetPt,10)+"_all_" + loose_ID, muon, this_weight * weight_by_pt, IsThisTight);
-      double MuTrkEffSF =  mcdata_correction->MuonTrackingEffScaleFactor(hnloose);
+      TString current_hist_name = "SingleElectronTrigger_Dijet_Awayjet_" + TString::Itoa(AwayjetPt,10)+"_all_" + loose_ID;
+      double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(hnloose);
             
       if(IsThisTight){
-	double muon_SF = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", hnloose, 0);
-	double trigger_SF = 1.;
-	double SFs = muon_SF * trigger_SF * MuTrkEffSF;
+	//double electron_id_sf = mcdata_correction->ElectronScaleFactor("", hnloose, 0);
+	double electron_id_sf = 1.;
+	double electron_SF = electron_id_sf * electron_RecoSF;
+	double SFs = electron_SF;
 	if(k_isdata) SFs = 1.;
 	//FillDenAndNum(current_hist_name + "_Nvtx_reweight", muon, this_weight * weight_by_pt * Nvtx_reweight * SFs, IsThisTight);
 	FillDenAndNum(current_hist_name + "_Nvtx_reweight", muon, this_weight * weight_by_pt * SFs, IsThisTight);
 
       }// if istight = apply SFs for tight lepton
-      else FillDenAndNum(current_hist_name + "_Nvtx_reweight", muon, this_weight * weight_by_pt * MuTrkEffSF, IsThisTight);
+      else FillDenAndNum(current_hist_name + "_Nvtx_reweight", muon, this_weight * weight_by_pt * electron_RecoSF, IsThisTight);
 
       histfilled = true;
     }//end of if(UseEvent)
@@ -286,21 +312,41 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
 }
 ////////////////////////////////////////////////////////RunFakes_ID ends
 
-void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<snu::KMuon> loose_mu, bool debugging){
+void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vector<snu::KElectron> loose_el, bool debugging){
   
   std::map< TString, std::vector<double> > HLT_ptrange; //defining muon pt range for each single muon trigger
   std::map< TString, double > HLT_ptmin;
-  HLT_ptrange["HLT_Mu20_v"].push_back(35.);
-  HLT_ptrange["HLT_Mu20_v"].push_back(45.);
-  HLT_ptmin["HLT_Mu20_v"] = 23.;
+  HLT_ptrange["HLT_Photon22_v"].push_back(40.);
+  HLT_ptrange["HLT_Photon22_v"].push_back(55.);
+  HLT_ptmin["HLT_Photon22_v"] = 25.;
 
-  HLT_ptrange["HLT_Mu27_v"].push_back(45.);
-  HLT_ptrange["HLT_Mu27_v"].push_back(80.);
-  HLT_ptmin["HLT_Mu27_v"] = 30.;
+  HLT_ptrange["HLT_Photon30_v"].push_back(55.);
+  HLT_ptrange["HLT_Photon30_v"].push_back(65.);
+  HLT_ptmin["HLT_Photon30_v"] = 35.;
 
-  HLT_ptrange["HLT_Mu50_v"].push_back(80.);
-  HLT_ptrange["HLT_Mu50_v"].push_back(9999.);
-  HLT_ptmin["HLT_Mu50_v"] = 55.;
+  HLT_ptrange["HLT_Photon36_v"].push_back(65.);
+  HLT_ptrange["HLT_Photon36_v"].push_back(85.);
+  HLT_ptmin["HLT_Photon36_v"] = 40.;
+
+  HLT_ptrange["HLT_Photon50_v"].push_back(85.);
+  HLT_ptrange["HLT_Photon50_v"].push_back(120.);
+  HLT_ptmin["HLT_Photon50_v"] = 55.;
+
+  HLT_ptrange["HLT_Photon75_v"].push_back(120.);
+  HLT_ptrange["HLT_Photon75_v"].push_back(150.);
+  HLT_ptmin["HLT_Photon75_v"] = 80.;
+
+  HLT_ptrange["HLT_Photon90_v"].push_back(150.);
+  HLT_ptrange["HLT_Photon90_v"].push_back(195.);
+  HLT_ptmin["HLT_Photon90_v"] = 100.;
+
+  HLT_ptrange["HLT_Photon120_v"].push_back(195.);
+  HLT_ptrange["HLT_Photon120_v"].push_back(280.);
+  HLT_ptmin["HLT_Photon120_v"] = 130.;
+
+  HLT_ptrange["HLT_Photon175_v"].push_back(280.);
+  HLT_ptrange["HLT_Photon175_v"].push_back(9999.);
+  HLT_ptmin["HLT_Photon175_v"] = 185.;
   
   std::vector<TString> AllHLTs;
   for(std::map< TString, std::vector<double> >::iterator it=HLT_ptrange.begin(); it!=HLT_ptrange.end(); it++){
@@ -326,28 +372,24 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
   //normalize test
   if(DijetPrompt){
     double m_Z = 91.1876;
+    std::vector< snu::KElectron > tightelectrons = GetElectrons(false, true, "ELECTRON_SUSY_HNPAIR_TIGHT");
     
-    std::vector< snu::KMuon > tightmuons_noiso = GetMuons("MUON_SUSY_TIGHT", true, 55., 2.4);
-    std::vector< snu::KMuon > tightmuons;
-    if(tightmuons_noiso.size() > 0){
-      for(unsigned int i_mu_noiso = 0; i_mu_noiso < tightmuons_noiso.size(); i_mu_noiso++){
-	if(tightmuons_noiso.at(i_mu_noiso).PFRelMiniIsoRho() < 0.2) tightmuons.push_back(tightmuons_noiso.at(i_mu_noiso)) ;
-      }
-    }
-    
-    //std::vector< snu::KMuon > tightmuons = GetMuons("MUON_HN_TIGHT", true, 55., 2.4);
+    double electron_id_iso_sf = 1.;
+    double electron_id_iso_sf_syst[2] = {1.};
+    double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(tightelectrons);
 
-    
-    double muon_id_iso_sf = 1.;
-    double muon_id_iso_sf_syst[2] = {1.};
-    double MuTrkEffSF =  1.;
     if(!k_isdata){
-      muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightmuons, 0);
-      muon_id_iso_sf_syst[0] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightmuons, 1);
-      muon_id_iso_sf_syst[1] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightmuons, -1);
-      MuTrkEffSF = mcdata_correction->MuonTrackingEffScaleFactor(tightmuons);
+      /*
+      muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, 0);
+      muon_id_iso_sf_syst[0] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, 1);
+      muon_id_iso_sf_syst[1] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, -1);
+      */
+      electron_id_iso_sf = 1.;
+      electron_id_iso_sf_syst[0] = 1.;
+      electron_id_iso_sf_syst[1] = 1.;
+      electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(tightelectrons);
     }
-    TString muon_id_iso_sf_string[2] = {"ID_Up", "ID_Down"};
+    TString electron_id_iso_sf_string[2] = {"ID_Up", "ID_Down"};
     
     
     TLorentzVector metvec;
@@ -357,22 +399,22 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
       TString ThisTrigger = AllHLTs.at(i);
       snu::KEvent Event = eventbase->GetEvent();
       int nvtx = Event.nVertices();
-      double Nvtx_reweight[2] = {1.};
-      TString Nvtx_reweight_string[2] = {"central", "Liverpool"};
-      if(!k_isdata){
-	//Nvtx_reweight[0] = mcdata_correction -> GetVtxReweight(ThisTrigger, nvtx);
-      }//!is_Data, setting Nvtx reweight values
-      
-      if( PassTrigger(ThisTrigger) && (loose_mu.size()!=0) ){
-	if(HLT_ptmin[ThisTrigger] > loose_mu.at(0).Pt()) continue;
+
+      if( PassTrigger(ThisTrigger) && (loose_el.size()!=0) ){
+	if(HLT_ptmin[ThisTrigger] > loose_el.at(0).Pt()) continue;
 	double triggerweight = 0.;
-	if(ThisTrigger.Contains("Mu20") ) triggerweight = 140.315;
-	else if(ThisTrigger.Contains("Mu27") ) triggerweight = 250.252;
-        else if(ThisTrigger.Contains("Mu50") ) triggerweight = 35863.308;
+	if(ThisTrigger.Contains("Photon22") ) triggerweight = 1.599;
+	else if(ThisTrigger.Contains("Photon30") ) triggerweight = 6.615;
+	else if(ThisTrigger.Contains("Photon36") ) triggerweight = 13.141;
+        else if(ThisTrigger.Contains("Photon50") ) triggerweight = 31.008;
+        else if(ThisTrigger.Contains("Photon75") ) triggerweight = 134.618;
+        else if(ThisTrigger.Contains("Photon90") ) triggerweight = 264.215;
+        else if(ThisTrigger.Contains("Photon120") ) triggerweight = 537.352;
+        else if(ThisTrigger.Contains("Photon175") ) triggerweight = 35860.065;
 	else triggerweight = 0.;
 	
-	double this_weight = weight * muon_id_iso_sf * MuTrkEffSF * triggerweight * pileup_reweight;
-        double weight_noID = weight * MuTrkEffSF * triggerweight * pileup_reweight;
+	double this_weight = weight * electron_id_iso_sf * electron_RecoSF * triggerweight * pileup_reweight;
+        double weight_noID = weight * electron_RecoSF * triggerweight * pileup_reweight;
 	
 	if(k_isdata){
 	  this_weight = 1.;
@@ -386,34 +428,27 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	int nvtx = Event.nVertices();
 	
 	//==== 1) Z-Peak
-        if(tightmuons.size()==2){
-          double mll = (tightmuons.at(0)+tightmuons.at(1)).M();
-          if( (tightmuons.at(0).Pt() > 20.) && (tightmuons.at(1).Pt() > 10.) && (fabs(mll-m_Z) < 10.) ){
+        if(tightelectrons.size()==2){
+          double mll = (tightelectrons.at(0)+tightelectrons.at(1)).M();
+          if( (tightelectrons.at(0).Pt() > 20.) && (tightelectrons.at(1).Pt() > 10.) && (fabs(mll-m_Z) < 10.) ){
             FillHist(ThisTrigger+"_ZPeak_mll", mll, this_weight, 0., 200., 200);
-            FillHist(ThisTrigger+"_ZPeak_leadpt", tightmuons.at(0).Pt(), this_weight, 0., 500., 500);
-            FillHist(ThisTrigger+"_ZPeak_subleadpt", tightmuons.at(1).Pt(), this_weight, 0., 500., 500);
+            FillHist(ThisTrigger+"_ZPeak_leadpt", tightelectrons.at(0).Pt(), this_weight, 0., 500., 500);
+            FillHist(ThisTrigger+"_ZPeak_subleadpt", tightelectrons.at(1).Pt(), this_weight, 0., 500., 500);
 	    FillHist(ThisTrigger+"_ZPeak_Nvtx", nvtx, this_weight, 0., 70., 70);
 	    FillHist(ThisTrigger+"_ZPeak_PFMET", METauto, this_weight, 0., 500., 500);
 	    
-	    for(int Nvtx_i = 0; Nvtx_i < 1; Nvtx_i++){
-	      FillHist(ThisTrigger+"_ZPeak_mll_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], mll, this_weight * Nvtx_reweight[Nvtx_i], 0., 200., 200);
-	      FillHist(ThisTrigger+"_ZPeak_leadpt_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], tightmuons.at(0).Pt(), this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
-	      FillHist(ThisTrigger+"_ZPeak_subleadpt_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], tightmuons.at(1).Pt(), this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
-	      FillHist(ThisTrigger+"_ZPeak_Nvtx_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], nvtx, this_weight * Nvtx_reweight[Nvtx_i], 0., 70., 70);
-	      FillHist(ThisTrigger+"_ZPeak_PFMET_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], METauto, this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
-	    }
 	    for(int ID_i = 0; ID_i < 2; ID_i++){
-	      FillHist(ThisTrigger+"_ZPeak_mll_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], mll, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 200., 200);
-              FillHist(ThisTrigger+"_ZPeak_leadpt_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], tightmuons.at(0).Pt(), weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
-              FillHist(ThisTrigger+"_ZPeak_subleadpt_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], tightmuons.at(1).Pt(), weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
-              FillHist(ThisTrigger+"_ZPeak_Nvtx_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], nvtx, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 70., 70);
-              FillHist(ThisTrigger+"_ZPeak_PFMET_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], METauto, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
+	      FillHist(ThisTrigger+"_ZPeak_mll_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], mll, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 200., 200);
+              FillHist(ThisTrigger+"_ZPeak_leadpt_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], tightelectrons.at(0).Pt(), weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
+              FillHist(ThisTrigger+"_ZPeak_subleadpt_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], tightelectrons.at(1).Pt(), weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
+              FillHist(ThisTrigger+"_ZPeak_Nvtx_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], nvtx, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 70., 70);
+              FillHist(ThisTrigger+"_ZPeak_PFMET_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], METauto, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
 	    }
-	    double MTval = AnalyzerCore::MT( loose_mu.at(0), metvec );
+	    double MTval = AnalyzerCore::MT( loose_el.at(0), metvec );
 	    if( (MTval > 60.) && (MTval < 100.)){//MT cut applied Z region
 	      FillHist(ThisTrigger+"_ZPeak_MTcut_mll", mll, this_weight, 0., 200., 200);
-	      FillHist(ThisTrigger+"_ZPeak_MTcut_leadpt", tightmuons.at(0).Pt(), this_weight, 0., 500., 500);
-	      FillHist(ThisTrigger+"_ZPeak_MTcut_subleadpt", tightmuons.at(1).Pt(), this_weight, 0., 500., 500);
+	      FillHist(ThisTrigger+"_ZPeak_MTcut_leadpt", tightelectrons.at(0).Pt(), this_weight, 0., 500., 500);
+	      FillHist(ThisTrigger+"_ZPeak_MTcut_subleadpt", tightelectrons.at(1).Pt(), this_weight, 0., 500., 500);
 	      FillHist(ThisTrigger+"_ZPeak_MTcut_Nvtx", nvtx, this_weight, 0., 70., 70);
 	      FillHist(ThisTrigger+"_ZPeak_MTcut_PFMET", METauto, this_weight, 0., 500., 500);
 	    }//MT cut
@@ -421,47 +456,47 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	}
 	
 	//==== 2) W
-	if(loose_mu.size() ==1){
-	  double MTval = AnalyzerCore::MT( loose_mu.at(0), metvec );
-	  double current_conept = loose_mu.at(0).Pt()*(1 + max(0.,(loose_mu.at(0).PFRelMiniIsoRho()-0.2) ) );
+	if(loose_el.size() ==1){
+	  double MTval = AnalyzerCore::MT( loose_el.at(0), metvec );
+	  double current_conept = loose_el.at(0).Pt()*(1 + max(0.,(loose_el.at(0).PFRelMiniIso(false)-0.1) ) );
 	  
 	  if((MTval > 60.) && (MTval < 100.)){
 	    FillHist(ThisTrigger + "_Ptcone_MET_inclusive_loose", current_conept, weight_noID, 0., 200., 200);
-	    FillHist(ThisTrigger + "_Eta_MET_inclusive_loose", loose_mu.at(0).Eta(),  weight_noID, -3., 3., 100);
+	    FillHist(ThisTrigger + "_Eta_MET_inclusive_loose", loose_el.at(0).Eta(),  weight_noID, -3., 3., 100);
 	    FillHist(ThisTrigger + "_MET_MET_inclusive_tight_loose", METauto, weight_noID, 0., 500., 500);
 	    FillHist(ThisTrigger + "_MT_MET_inclusive_tight_loose", MTval, weight_noID, 0., 500., 500);
 	    
-	    bool IsThisTight = PassID( loose_mu.at(0), tight_ID);
+	    bool IsThisTight = PassID( loose_el.at(0), tight_ID);
 	    if(IsThisTight){
 	      FillHist(ThisTrigger + "_Ptcone_MET_inclusive_tight", current_conept, this_weight, 0., 200., 200);
-	      FillHist(ThisTrigger + "_Eta_MET_inclusive_tight", loose_mu.at(0).Eta(),  this_weight, -3., 3., 100);
+	      FillHist(ThisTrigger + "_Eta_MET_inclusive_tight", loose_el.at(0).Eta(),  this_weight, -3., 3., 100);
 	      FillHist(ThisTrigger + "_MET_MET_inclusive_tight", METauto, this_weight, 0., 500., 500);
 	      FillHist(ThisTrigger + "_MT_MET_inclusive_tight", MTval, this_weight, 0., 500., 500);
 	    }
 	  }	
 	}
 	
-	if(tightmuons.size()==1){
-          double MTval = AnalyzerCore::MT( tightmuons.at(0), metvec );
+	if(tightelectrons.size()==1){
+          double MTval = AnalyzerCore::MT( tightelectrons.at(0), metvec );
           FillHist(ThisTrigger + "MT_MET_MT_inclusive_tight", MTval, this_weight, 0., 500., 500);
 	  
-	  if( (METauto > 40.) && (MTval > 60.) && (MTval < 100.) && (tightmuons.at(0).Pt() > 20.)){
+	  if( (METauto > 40.) && (MTval > 60.) && (MTval < 100.) && (tightelectrons.at(0).Pt() > 20.)){
 	    FillHist(ThisTrigger+"_W_John_PFMET", METauto, this_weight, 0., 500., 500);
             FillHist(ThisTrigger+"_W_John_MT", MTval, this_weight, 0., 500., 500);
-            FillHist(ThisTrigger+"_W_John_leadpt", tightmuons.at(0).Pt(), this_weight, 0., 500., 500);
+            FillHist(ThisTrigger+"_W_John_leadpt", tightelectrons.at(0).Pt(), this_weight, 0., 500., 500);
 	    FillHist(ThisTrigger+"_W_John_Nvtx", nvtx, this_weight, 0., 70., 70);
 
 	    for(int Nvtx_i = 0; Nvtx_i < 1; Nvtx_i++){
 	      FillHist(ThisTrigger+"_W_John_PFMET_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], METauto, this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
 	      FillHist(ThisTrigger+"_W_John_MT_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], MTval, this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
-	      FillHist(ThisTrigger+"_W_John_leadpt_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], tightmuons.at(0).Pt(), this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
+	      FillHist(ThisTrigger+"_W_John_leadpt_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], tightelectrons.at(0).Pt(), this_weight * Nvtx_reweight[Nvtx_i], 0., 500., 500);
 	      FillHist(ThisTrigger+"_W_John_Nvtx_Nvtx_reweight_" + Nvtx_reweight_string[Nvtx_i], nvtx, this_weight * Nvtx_reweight[Nvtx_i], 0., 70., 70);
 	    }
 	    for(int ID_i = 0; ID_i < 2; ID_i++){
-	      FillHist(ThisTrigger+"_W_John_PFMET_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], METauto, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
-              FillHist(ThisTrigger+"_W_John_MT_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], MTval, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
-              FillHist(ThisTrigger+"_W_John_leadpt_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], tightmuons.at(0).Pt(), weight_noID * muon_id_iso_sf_syst[ID_i], 0., 500., 500);
-              FillHist(ThisTrigger+"_W_John_Nvtx_Nvtx_reweight_" + muon_id_iso_sf_string[ID_i], nvtx, weight_noID * muon_id_iso_sf_syst[ID_i], 0., 70., 70);
+	      FillHist(ThisTrigger+"_W_John_PFMET_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], METauto, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
+              FillHist(ThisTrigger+"_W_John_MT_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], MTval, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
+              FillHist(ThisTrigger+"_W_John_leadpt_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], tightelectrons.at(0).Pt(), weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
+              FillHist(ThisTrigger+"_W_John_Nvtx_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], nvtx, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 70., 70);
 	    }
 	  }	      
         }
@@ -470,15 +505,15 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
   }
   //normaize test ends
   //if(debugging) cout << "trigger" << endl;
-    
+  
   if(debugging) cout << "jets.size() : " << jets.size() << endl;
   if(jets.size() < 1) return; // Njet >= 1
   
-  std::vector<snu::KMuon> hnloose;//keep only prompt muon for MC subtraction, keep only fake muon for QCD fr cal
+  std::vector<snu::KElectron> hnloose;//keep only prompt muon for MC subtraction, keep only fake muon for QCD fr cal
   hnloose.clear();
  
-  if(debugging) cout << "loose_mu.size() : " << loose_mu.size() << endl;
-  if(loose_mu.size() != 1) return;
+  if(debugging) cout << "loose_el.size() : " << loose_el.size() << endl;
+  if(loose_el.size() != 1) return;
   
   for(unsigned int i=0; i<loose_mu.size(); i++){
     if(k_isdata) hnloose.push_back( loose_mu.at(i) );
@@ -937,28 +972,49 @@ void Electron_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_I
 }//RunFakes_subtraction ends
 
 
-double Electron_FR_cal_all::GetTriggerWeightByPtRange(TString hltname, vector<double> ptrange, double trigger_safe_pt, std::vector<snu::KMuon> muons, int npfjet50){
+double Electron_FR_cal_all::GetTriggerWeightByPtRange(TString hltname, vector<double> ptrange, double trigger_safe_pt, std::vector<snu::KElectron> electrons, int npfjet50){
 
   double prescale_trigger = 0.;
   
-  if(muons.size()==1){
-    snu::KMuon muon = muons.at(0);
+  if(electrons.size()==1){
+    snu::KElectron electron = electrons.at(0);
     double min_pt_cone = ptrange.at(0);
     double max_pt_cone = ptrange.at(1);
-    bool SafePt = (muon.MiniAODPt() > trigger_safe_pt);
-
+    bool SafePt = (electron.Pt() > trigger_safe_pt);
+    
     if(SafePt && PassTrigger(hltname)){
-      double TightISO = 0.2;
-      double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
+      double TightISO = 0.1;
+      double conept = electron.Pt()*(1 + max(0.,(muon.PFRelMiniIso(false)-TightISO) ) );
 
       if(conept >= min_pt_cone && conept < max_pt_cone){
-        if(hltname=="HLT_Mu20"){
-	  prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+	if(hltname=="HLT_Photon22_v"){
+	  prescale_trigger = 1.599;
 	}
-	else if(hltname=="HLT_Mu27_v"){
-	  prescale_trigger = 250.252;
+	else if(hltname=="HLT_Photon30_v"){
+	  prescale_trigger = 6.615;
 	}
-	else prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+	else if(hltname=="HLT_Photon36_v"){
+          prescale_trigger = 13.141;
+	}
+	else if(hltname=="HLT_Photon50_v"){
+	  prescale_trigger = 31.008;
+	}
+	else if(hltname=="HLT_Photon75_v"){
+	  prescale_trigger = 134.618;
+	}
+	else if(hltname=="HLT_Photon90_v"){
+	  prescale_trigger = 264.215;
+	}
+	else if(hltname=="HLT_Photon120_v"){
+	  prescale_trigger = 537.352;
+	}
+	else if(hltname=="HLT_Photon175_v"){
+	  prescale_trigger = 35860.065;
+	}
+	else{
+	  prescale_trigger = 0.;
+	}
+	
       }
       
     }
@@ -971,7 +1027,9 @@ double Electron_FR_cal_all::GetTriggerWeightByPtRange(TString hltname, vector<do
 
 }
 
-void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double thisweight, bool isTight){
+void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KElectron electron, double thisweight, bool isTight){
+
+  int n_pt_bin = 12;
   
   //float etaarray [] = {0.0, 0.8, 1.479, 2.0, 2.5};
   //float ptarray [] = {0., 5., 12., 15., 20., 25., 30., 35., 45., 60., 100., 200.};
@@ -982,8 +1040,8 @@ void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double 
   //float ptarray [] = {0., 10., 20., 30., 40., 50., 60., 70.};
   //float ptarray [] = {5., 10., 20., 30., 40., 50., 60., 70.};
   //float ptarray [] = {35, 45, 75, 80, 110, 150, 200, 250, 300, 350, 500, 1000, 1500, 2000};
-    float ptarray [] = {35, 45, 55, 65, 80,  95,  110, 125, 140, 200, 250, 300,  350,  500, 1000, 1500, 2000};
-  
+  float ptarray [] = {40, 55, 65, 85, 120, 150, 195, 280, 350, 500, 1000, 1500, 2000};
+
   
   //float ptaaray [] = {5., 12., };
   
@@ -991,8 +1049,8 @@ void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double 
   float etaarray_2 [] = {0.0, 1.479, 2.5};
   float ptarray_2 [] = {10.,15.,40.,200.};
   
-  double TightISO = 0.2;
-  double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
+  double TightISO = 0.1;
+  double conept = electron.Pt()*(1 + max(0.,(electron.PFRelMiniIso(false)-TightISO) ) );
 
   /*
   FillHist(prefix+"_eta_F0", muon.Eta(), thisweight, -3., 3., 30);
@@ -1007,8 +1065,8 @@ void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double 
   */
   //FillHist(prefix+"_events_pt_vs_eta_F0", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, 11, etaarray, 4);
   //FillHist(prefix+"_events_pt_cone_vs_eta_F0", conept, fabs(muon.Eta()), thisweight, ptarray, 11, etaarray, 4);
-  FillHist(prefix+"_events_pt_vs_eta_F0", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, 16, etaarray, 3);
-  FillHist(prefix+"_events_pt_cone_vs_eta_F0", conept, fabs(muon.Eta()), thisweight, ptarray, 16, etaarray, 3);
+  FillHist(prefix+"_events_pt_vs_eta_F0", electron.Pt(), fabs(electron.Eta()), thisweight, ptarray, n_pt_bin, etaarray, 3);
+  FillHist(prefix+"_events_pt_cone_vs_eta_F0", conept, fabs(electron.Eta()), thisweight, ptarray, n_pt_bin, etaarray, 3);
   FillHist(prefix+"_PFMET_F0", METauto, thisweight, 0., 1000., 1000);
   
   if( isTight ){
@@ -1025,8 +1083,8 @@ void Electron_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double 
     */
     //FillHist(prefix+"_events_pt_vs_eta_F", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, 11, etaarray, 4);
     //FillHist(prefix+"_events_pt_cone_vs_eta_F", conept, fabs(muon.Eta()), thisweight, ptarray, 11, etaarray, 4);
-    FillHist(prefix+"_events_pt_vs_eta_F", muon.Pt(), fabs(muon.Eta()), thisweight, ptarray, 16, etaarray, 3);
-    FillHist(prefix+"_events_pt_cone_vs_eta_F", conept, fabs(muon.Eta()), thisweight, ptarray, 16, etaarray, 3);
+    FillHist(prefix+"_events_pt_vs_eta_F", electron.Pt(), fabs(electron.Eta()), thisweight, ptarray, n_pt_bin, etaarray, 3);
+    FillHist(prefix+"_events_pt_cone_vs_eta_F", conept, fabs(electron.Eta()), thisweight, ptarray, n_pt_bin, etaarray, 3);
     FillHist(prefix+"_PFMET_F", METauto, thisweight, 0., 1000., 1000);
   }
   
