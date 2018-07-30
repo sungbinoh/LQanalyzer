@@ -21,6 +21,7 @@
 #pragma link C++ class HN_pair_all+;
 #pragma link C++ class HN_pair_fake+;
 #pragma link C++ class Muon_FR_cal_all+;
+#pragma link C++ class Electron_FR_cal_all+;
 #pragma link C++ class CF_MC+;
 #pragma link C++ class FakeRateMC+;
 #pragma link C++ class HNEMu+;
