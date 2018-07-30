@@ -50,7 +50,6 @@ private:
 
   Flavour k_flavour;
   Double_t k_dz, k_dxy, k_dxy_sig2D,k_dxy_sig3D, k_reliso, k_minireliso;
-
   Int_t k_leptype;
   bool k_mciscf;
   const snu::KMuon* MuonPtr;
