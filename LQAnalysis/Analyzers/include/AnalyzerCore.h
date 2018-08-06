@@ -433,6 +433,8 @@ class AnalyzerCore : public LQCycleBase {
 
   //==== (Trilepton) HeavyN stuffs
   void JSCorrectedMETRochester(std::vector<snu::KMuon> muall, double& OrignialMET, double& OriginalMETPhi);
+  void JSCorrectedMETElectron(int sys, std::vector<snu::KElectron> elall, double& OrignialMET, double& OriginalMETPhi);
+
   HNGenMatching *m_HNgenmatch;
 
   void PutNuPz(TLorentzVector *nu, double Pz);

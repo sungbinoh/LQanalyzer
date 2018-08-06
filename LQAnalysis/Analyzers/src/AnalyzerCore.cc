@@ -833,6 +833,37 @@ void AnalyzerCore::CorrectedMETJMR(int sys, vector<snu::KFatJet> fjetall,   doub
 
 }
 
+
+void AnalyzerCore::JSCorrectedMETElectron(int sys, std::vector<snu::KElectron> elall, double& OrignialMET, double& OriginalMETPhi){
+
+  if(sys==0) return;
+
+  float met_x = OrignialMET*TMath::Cos(OriginalMETPhi);
+  float met_y = OrignialMET*TMath::Sin(OriginalMETPhi);
+
+  float px_orig(0.), py_orig(0.),px_shifted(0.), py_shifted(0.);
+  for(unsigned int imu=0; imu < elall.size() ; imu++){
+
+    px_orig+= elall.at(imu).Px();
+    py_orig+= elall.at(imu).Py();
+    if(sys==1){
+      px_shifted += elall.at(imu).Px()*elall.at(imu).PtShiftedUp();
+      py_shifted += elall.at(imu).Py()*elall.at(imu).PtShiftedUp();
+    }
+    if(sys==-1){
+      px_shifted += elall.at(imu).Px()*elall.at(imu).PtShiftedDown();
+      py_shifted += elall.at(imu).Py()*elall.at(imu).PtShiftedDown();
+    }
+  }
+  met_x = met_x + px_orig - px_shifted;
+  met_y = met_y + py_orig - py_shifted;
+
+  OrignialMET =  sqrt(met_x*met_x + met_y*met_y);
+  OriginalMETPhi = TMath::ATan2(met_y,met_x);
+
+}
+
+
 void AnalyzerCore::JSCorrectedMETRochester(std::vector<snu::KMuon> muall, double& OrignialMET, double& OriginalMETPhi){
 
   //cout << "[AnalyzerCore::CorrectedMETRochester] OrignialMET = " << OrignialMET << endl;
