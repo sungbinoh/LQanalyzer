@@ -55,11 +55,11 @@ void Muon_FR_cal_all::InitialiseAnalysis() throw( LQError ) {
 void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
   
   //cout << "--------------------------------" << endl;
-  
+  //cout << "1 : " << eventbase->GetEvent().EventNumber() << endl;
   /*bool SBt_JSf = CheckEventComparison("suoh","JS_fake_mu22119_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_FRCalculator_Mu_dxysig_DILEP",
-				      "suoh","SB_fake_mu22118_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_Muon_FR_cal_all", false);
+  "suoh","SB_fake_mu22118_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_Muon_FR_cal_all", false);
   bool SBf_JSt = CheckEventComparison("suoh","JS_fake_mu22119_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_FRCalculator_Mu_dxysig_DILEP",
-                                      "suoh","SB_fake_mu22118_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_Muon_FR_cal_all", true);
+  "suoh","SB_fake_mu22118_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_Muon_FR_cal_all", true);
   
   if(!SBt_JSf && !SBf_JSt) return;
   cout << "====================================" << endl;
@@ -74,6 +74,12 @@ void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
   }
   */
   
+  bool SBt_JSf = CheckEventComparison("suoh","DY_808_31378_SKDY50plus_cat_v8-0-8_Muon_FR_cal_all",
+				      "suoh","DY_807_31377_SKLowStat_DYJets_cat_v8-0-7_Muon_FR_cal_all", false);
+  bool SBf_JSt = CheckEventComparison("suoh","DY_808_31378_SKDY50plus_cat_v8-0-8_Muon_FR_cal_all",
+				      "suoh","DY_807_31377_SKLowStat_DYJets_cat_v8-0-7_Muon_FR_cal_all", true);
+  bool both_tag = !SBt_JSf && !SBf_JSt;
+  
   
   //if(eventbase->GetEvent().RunNumber() != 276282 && eventbase->GetEvent().RunNumber() != 276283) return;
   
@@ -85,17 +91,150 @@ void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
   if (!eventbase->GetEvent().HasGoodPrimaryVertex()) return; //// Make cut on event wrt vertex
   numberVertices = eventbase->GetEvent().nVertices();
   
+  
+  bool pass_50 = PassTrigger("HLT_Mu50_v");
+  bool pass_27 = PassTrigger("HLT_Mu27_v");
+  bool pass_20 = PassTrigger("HLT_Mu20_v");
+
+  FillHist("HLT_Mu50_v_Pass", 0.5, 1. * MCweight, 0., 5., 5);
+  if(pass_20) FillHist("HLT_Mu50_v_Pass", 1.5, 1. * MCweight, 0., 5., 5);
+  if(pass_27) FillHist("HLT_Mu50_v_Pass", 2.5, 1. * MCweight, 0., 5., 5);
+  if(pass_50) FillHist("HLT_Mu50_v_Pass", 3.5, 1. * MCweight, 0., 5., 5);
+
+  
   std::vector<TString> HLTs_single;
   HLTs_single.push_back("HLT_Mu20_v");
   HLTs_single.push_back("HLT_Mu27_v");
   HLTs_single.push_back("HLT_Mu50_v");
   if(!PassTriggerOR(HLTs_single)) return;
   
+  std::vector<snu::KMuon> muColl_test = GetMuons("MUON_POG_TIGHT",true);
+  std::vector<snu::KElectron> electron_test = GetElectrons(false, true, "ELECTRON_POG_TIGHT");
+
+  
+  //cout << "weight : " << weight << ", MCweight : " << MCweight << endl;
+
+  if(!isData) weight*=MCweight;
+
+  std::vector<TString> AllHLTs_el;
+  AllHLTs_el.push_back("HLT_Photon22_v");
+  AllHLTs_el.push_back("HLT_Photon30_v");
+  AllHLTs_el.push_back("HLT_Photon36_v");
+  AllHLTs_el.push_back("HLT_Photon50_v");
+  AllHLTs_el.push_back("HLT_Photon75_v");
+  AllHLTs_el.push_back("HLT_Photon90_v");
+  AllHLTs_el.push_back("HLT_Photon120_v");
+  AllHLTs_el.push_back("HLT_Photon175_v");
+
+  std::vector<TString> AllHLTs;
+  AllHLTs.push_back("HLT_Mu20_v");
+  AllHLTs.push_back("HLT_Mu27_v");
+  AllHLTs.push_back("HLT_Mu50_v");
+  
+  std::map< TString, double > HLT_ptmin;
+  HLT_ptmin["HLT_Photon22_v"] = 25.;
+  HLT_ptmin["HLT_Photon30_v"] = 35.;
+  HLT_ptmin["HLT_Photon36_v"] = 40.;
+  HLT_ptmin["HLT_Photon50_v"] = 55.;
+  HLT_ptmin["HLT_Photon75_v"] = 80.;
+  HLT_ptmin["HLT_Photon90_v"] = 100.;
+  HLT_ptmin["HLT_Photon120_v"] = 130.;
+  HLT_ptmin["HLT_Photon175_v"] = 190.;
+  
+  
+  for(unsigned int i=0; i<AllHLTs.size(); i++){
+    TString ThisTrigger = AllHLTs.at(i);
+  
+    if(PassTrigger(ThisTrigger)){// to check difference between 807 and 808
+      if(muColl_test.size() == 2){
+	if(muColl_test.at(0).Pt() > 55 && muColl_test.at(1).Pt() > 25.){
+	//cout << "1 : " << eventbase->GetEvent().EventNumber() << endl;
+	  
+	  double m_Z = 91.1876;
+	  double m_mumu = (muColl_test.at(0) + muColl_test.at(1) ).M();
+	  
+	  if(fabs(m_mumu - m_Z) < 10.){
+	    //if(SBf_JSt) cout << "SBf_JSt 1 : " << eventbase->GetEvent().EventNumber() << endl;
+	    //if(SBt_JSf) cout << "SBt_JSf 1 : " << eventbase->GetEvent().EventNumber() << endl;
+	    /*
+	      if(both_tag){
+	      cout << "1 : " << eventbase->GetEvent().EventNumber() << endl;
+	      cout << "1st lep Pt, eta, phi : " << muColl_test.at(0).Pt() << ", " << muColl_test.at(0).Eta() << ", " << muColl_test.at(0).Phi() << endl;
+	      cout << "2nd lep Pt, eta, phi : " << muColl_test.at(1).Pt() << ", " << muColl_test.at(1).Eta() << ", " << muColl_test.at(1).Phi() << endl;
+	      }
+	    */
+	    //FillEventComparisonFile("DY_808_");
+	    FillHist("m_mumu_" + ThisTrigger, m_mumu, 1. * MCweight, 0., 200., 200);
+	    FillHist("1st_lep_PT_" + ThisTrigger, muColl_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger, muColl_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+	    FillHist("1st_lep_PT_" + ThisTrigger, muColl_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger, muColl_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+	    FillHist("1st_lep_PT_" + ThisTrigger, muColl_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger, muColl_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+	    //cout << "weight : " << weight << endl;
+	    FillHist("m_mumu_" + ThisTrigger + "_weight", m_mumu, weight, 0., 200., 200);
+	    FillHist("1st_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(0).Pt(), weight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(1).Pt(), weight, 0., 500., 500);
+	    FillHist("1st_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(0).Pt(), weight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(1).Pt(), weight, 0., 500., 500);
+	    FillHist("1st_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(0).Pt(), weight, 0., 500., 500);
+	    FillHist("2nd_lep_PT_" + ThisTrigger + "_weight", muColl_test.at(1).Pt(), weight, 0., 500., 500);
+	    
+	  }
+	}
+      }
+    }
+  }
+  
+  for(unsigned int i=0; i<AllHLTs_el.size(); i++){
+    TString ThisTrigger = AllHLTs_el.at(i);
+
+    if(PassTrigger(ThisTrigger)){// to check difference between 807 and 808                                                                                                                                                                                                     
+      if(electron_test.size() == 2){
+        if(electron_test.at(0).Pt() > HLT_ptmin[ThisTrigger] && electron_test.at(1).Pt() > 25.){
+	  //cout << "1 : " << eventbase->GetEvent().EventNumber() << endl;
+	  
+          double m_Z = 91.1876;
+          double m_mumu = (electron_test.at(0) + electron_test.at(1) ).M();
+
+          if(fabs(m_mumu - m_Z) < 10.){
+	    cout << "fill electrons" << endl;
+
+	    
+            FillHist("m_elel_" + ThisTrigger, m_mumu, 1. * MCweight, 0., 200., 200);
+            FillHist("1st_el_PT_" + ThisTrigger, electron_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger, electron_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+            FillHist("1st_el_PT_" + ThisTrigger, electron_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger, electron_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+            FillHist("1st_el_PT_" + ThisTrigger, electron_test.at(0).Pt(), 1. * MCweight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger, electron_test.at(1).Pt(), 1. * MCweight, 0., 500., 500);
+            //cout << "weight : " << weight << endl;
+            FillHist("m_elel_" + ThisTrigger + "_weight", m_mumu, weight, 0., 200., 200);
+            FillHist("1st_el_PT_" + ThisTrigger + "_weight", electron_test.at(0).Pt(), weight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger + "_weight", electron_test.at(1).Pt(), weight, 0., 500., 500);
+            FillHist("1st_el_PT_" + ThisTrigger + "_weight", electron_test.at(0).Pt(), weight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger + "_weight", electron_test.at(1).Pt(), weight, 0., 500., 500);
+            FillHist("1st_el_PT_" + ThisTrigger + "_weight", electron_test.at(0).Pt(), weight, 0., 500., 500);
+            FillHist("2nd_el_PT_" + ThisTrigger + "_weight", electron_test.at(1).Pt(), weight, 0., 500., 500);
+
+          }
+        }
+      }
+    }
+  }
+
+
+
+  return;
+    
+
   std::vector<snu::KElectron> elColl = GetElectrons("ELECTRON_HN_VETO");
   if(elColl.size() != 0) return; // no e 
+
   
-  if(!isData) weight*=MCweight;
   
+  
+    
   //cout << weight << endl;
   std::vector<snu::KMuon> muColl = GetMuons("MUON_SUSY_VETO",true);
   CorrectedMETRochester(muColl);
@@ -949,13 +1088,15 @@ double Muon_FR_cal_all::GetTriggerWeightByPtRange(TString hltname, vector<double
       double conept = muon.Pt()*(1 + max(0.,(muon.PFRelMiniIsoRho()-TightISO) ) );
 
       if(conept >= min_pt_cone && conept < max_pt_cone){
-        if(hltname=="HLT_Mu20"){
-	  prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+        if(hltname=="HLT_Mu20_v"){
+	  //prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+	  prescale_trigger = 140.315;
 	}
 	else if(hltname=="HLT_Mu27_v"){
 	  prescale_trigger = 250.252;
 	}
-	else prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+	//else prescale_trigger = WeightByTrigger(hltname, TargetLumi) ;
+	else prescale_trigger = 35863.308;
       }
       
     }

@@ -54,6 +54,7 @@ void Electron_FR_cal_all::InitialiseAnalysis() throw( LQError ) {
 
 void Electron_FR_cal_all::ExecuteEvents()throw( LQError ){
   
+  cout << "ahah" << endl;
   //cout << "--------------------------------" << endl;
   
   /*bool SBt_JSf = CheckEventComparison("suoh","JS_fake_mu22119_periodC_SKDoubleMuon_hnfake_cat_v8-0-7_FRCalculator_Mu_dxysig_DILEP",
@@ -74,6 +75,7 @@ void Electron_FR_cal_all::ExecuteEvents()throw( LQError ){
   }
   */
   
+  cout << "RunNumber : " << eventbase->GetEvent().RunNumber() << ", EventNumber : " << eventbase->GetEvent().EventNumber() << endl;
   
   //if(eventbase->GetEvent().RunNumber() != 276282 && eventbase->GetEvent().RunNumber() != 276283) return;
   
@@ -95,8 +97,55 @@ void Electron_FR_cal_all::ExecuteEvents()throw( LQError ){
   HLTs_single.push_back("HLT_Photon120_v");
   HLTs_single.push_back("HLT_Photon175_v");
 
+  FillHist("HLT_Pass", 0.5, 1., 0., 20., 20);
+  std::vector<snu::KElectron> electron_nocut = GetElectrons(true, true, "ELECTRON_NOCUT");
+  unsigned int N_electron_nocut = 0;
+  N_electron_nocut = electron_nocut.size();
+  double el_pt_max = 0.;
+  if(N_electron_nocut > 0){
+    for(int i_el_nocut = 0; i_el_nocut < N_electron_nocut; i_el_nocut++){
+      double current_el_pt = electron_nocut.at(i_el_nocut).Pt();
+      if(current_el_pt > el_pt_max) el_pt_max = current_el_pt;
+    }
+  }
+  
+  if(PassTrigger("HLT_Photon22_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 1.5, 1., 0., 20., 20); 
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon22_v", el_pt_max, 1., 0., 500., 500);
+  }  
+  if(PassTrigger("HLT_Photon30_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 2.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon30_v", el_pt_max, 1., 0., 500., 500);
+  }  
+  if(PassTrigger("HLT_Photon36_v")){ 
+    if(el_pt_max > 190) FillHist("HLT_Pass", 3.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon36_v", el_pt_max, 1., 0., 500., 500);
+  }  
+  if(PassTrigger("HLT_Photon50_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 4.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon50_v", el_pt_max, 1., 0., 500., 500);
+  }  
+  if(PassTrigger("HLT_Photon75_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 5.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon75_v", el_pt_max, 1., 0., 500., 500);
+  }
+  if(PassTrigger("HLT_Photon90_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 6.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon90_v", el_pt_max, 1., 0., 500., 500);
+  }  
+  if(PassTrigger("HLT_Photon120_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 7.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon120_v", el_pt_max, 1., 0., 500., 500);
+  }
+  if(PassTrigger("HLT_Photon175_v")){
+    if(el_pt_max > 190) FillHist("HLT_Pass", 8.5, 1., 0., 20., 20);
+    if(N_electron_nocut > 0) FillHist("El_Pt_MAX_HLT_Photon175_v", el_pt_max, 1., 0., 500., 500);
+  }
+  
+  
+  
   if(!PassTriggerOR(HLTs_single)) return;
-
+  
   std::vector<snu::KMuon> muColl = GetMuons("MUON_HN_VETO");
   if(muColl.size() != 0) return;//no mu
   
@@ -129,20 +178,20 @@ void Electron_FR_cal_all::ExecuteEvents()throw( LQError ){
   TString cut_string[] = {"iso_p3", "iso_p4", "dxy_minus_p02", "dxy_plus_p02", "dxy_plus_p04", "dz_minus_p05", "dz_plus_p05"};
   
   int N_cut_syst = 7;
-  for(int i = 0; i < N_cut_syst; i ++){
+  for(int i_cut_syst = 0; i_cut_syst < N_cut_syst; i_cut_syst ++){
     std::vector<snu::KElectron> this_el;
-    for(int j = 0; j < loosest_electron.size(); j++){
-      if(loosest_electron.at(j).PFRelMiniIso(false) < reliso_cut[reliso_i[i]] ){
-	if( fabs( loosest_electron.at(j).SCEta() ) < 1.479 && fabs(loosest_electron.at(j).dxy()) < dxy_b_cut[dxy_i[i]] && fabs(loosest_electron.at(j).dz()) < dz_b_cut[dz_i[i]]){//if berrel & passing IP cuts
-	  this_el.push_back(loosest_electron.at(j));
+    for(int j_loose_el = 0; j_loose_el < loosest_electron.size(); j_loose_el ++){
+      if(loosest_electron.at(j_loose_el).PFRelMiniIso(false) < reliso_cut[reliso_i[i_cut_syst]] ){
+	if( fabs( loosest_electron.at(j_loose_el).SCEta() ) < 1.479 && fabs(loosest_electron.at(j_loose_el).dxy()) < dxy_b_cut[dxy_i[i_cut_syst]] && fabs(loosest_electron.at(j_loose_el).dz()) < dz_b_cut[dz_i[i_cut_syst]]){//if berrel & passing IP cuts
+	  this_el.push_back(loosest_electron.at(j_loose_el));
 	}
-	if( fabs( loosest_electron.at(j).SCEta() ) > 1.479 && fabs(loosest_electron.at(j).dxy()) < dxy_e_cut[dxy_i[i]] && fabs(loosest_electron.at(j).dz()) < dz_e_cut[dz_i[i]]){//if endcap & passing IP cuts
-	  this_el.push_back(loosest_electron.at(j));
+	if( fabs( loosest_electron.at(j_loose_el).SCEta() ) > 1.479 && fabs(loosest_electron.at(j_loose_el).dxy()) < dxy_e_cut[dxy_i[i_cut_syst]] && fabs(loosest_electron.at(j_loose_el).dz()) < dz_e_cut[dz_i[i_cut_syst]]){//if endcap & passing IP cuts
+	  this_el.push_back(loosest_electron.at(j_loose_el));
 	}
       }//if pass iso cut
     }//for j
     //cout << "RunFakes_ID" << endl;
-    RunFakes_ID("ELECTRON_SUSY_HNPAIR_TIGHT", "ELECTRON_SUSY_HNPAIR_LOOSE_" + cut_string[i], this_el, false);
+    RunFakes_ID("ELECTRON_SUSY_HNPAIR_TIGHT", "ELECTRON_SUSY_HNPAIR_LOOSE_" + cut_string[i_cut_syst], this_el, false);
   }//for i
   
   //cout << "RunFakes start" << endl;
@@ -186,7 +235,7 @@ void Electron_FR_cal_all::RunFakes_ID(TString tight_ID, TString loose_ID, std::v
 
   HLT_ptrange["HLT_Photon175_v"].push_back(280.);
   HLT_ptrange["HLT_Photon175_v"].push_back(9999.);
-  HLT_ptmin["HLT_Photon175_v"] = 185.;
+  HLT_ptmin["HLT_Photon175_v"] = 190.;
   
   
   std::vector<TString> AllHLTs;
@@ -319,19 +368,19 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
   HLT_ptrange["HLT_Photon22_v"].push_back(40.);
   HLT_ptrange["HLT_Photon22_v"].push_back(55.);
   HLT_ptmin["HLT_Photon22_v"] = 25.;
-
+  
   HLT_ptrange["HLT_Photon30_v"].push_back(55.);
   HLT_ptrange["HLT_Photon30_v"].push_back(65.);
   HLT_ptmin["HLT_Photon30_v"] = 35.;
-
+  
   HLT_ptrange["HLT_Photon36_v"].push_back(65.);
   HLT_ptrange["HLT_Photon36_v"].push_back(85.);
   HLT_ptmin["HLT_Photon36_v"] = 40.;
-
+  
   HLT_ptrange["HLT_Photon50_v"].push_back(85.);
   HLT_ptrange["HLT_Photon50_v"].push_back(120.);
   HLT_ptmin["HLT_Photon50_v"] = 55.;
-
+  
   HLT_ptrange["HLT_Photon75_v"].push_back(120.);
   HLT_ptrange["HLT_Photon75_v"].push_back(150.);
   HLT_ptmin["HLT_Photon75_v"] = 80.;
@@ -346,7 +395,7 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 
   HLT_ptrange["HLT_Photon175_v"].push_back(280.);
   HLT_ptrange["HLT_Photon175_v"].push_back(9999.);
-  HLT_ptmin["HLT_Photon175_v"] = 185.;
+  HLT_ptmin["HLT_Photon175_v"] = 190.;
   
   std::vector<TString> AllHLTs;
   for(std::map< TString, std::vector<double> >::iterator it=HLT_ptrange.begin(); it!=HLT_ptrange.end(); it++){
@@ -375,42 +424,41 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
     std::vector< snu::KElectron > tightelectrons = GetElectrons(false, true, "ELECTRON_SUSY_HNPAIR_TIGHT");
     
     double electron_id_iso_sf = 1.;
-    double electron_id_iso_sf_syst[2] = {1.};
-    double electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(tightelectrons);
-
+    double electron_id_iso_sf_syst[2] = {1., 1.};
+    double electron_RecoSF = 1.;
+    
     if(!k_isdata){
-      /*
-      muon_id_iso_sf = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, 0);
-      muon_id_iso_sf_syst[0] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, 1);
-      muon_id_iso_sf_syst[1] = mcdata_correction->MuonScaleFactor("MUON_SUSY_TIGHT", tightelectrons, -1);
-      */
       electron_id_iso_sf = 1.;
       electron_id_iso_sf_syst[0] = 1.;
       electron_id_iso_sf_syst[1] = 1.;
-      electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(tightelectrons);
+      electron_RecoSF = mcdata_correction->ElectronRecoScaleFactor(tightelectrons, 0);
     }
     TString electron_id_iso_sf_string[2] = {"ID_Up", "ID_Down"};
-    
-    
+        
     TLorentzVector metvec;
     metvec.SetPtEtaPhiE( METauto, 0, METphiauto, METauto );
     
-    for(unsigned int i=0; i<AllHLTs.size(); i++){
+    for(unsigned int i = 0; i < AllHLTs.size(); i++){
       TString ThisTrigger = AllHLTs.at(i);
       snu::KEvent Event = eventbase->GetEvent();
       int nvtx = Event.nVertices();
       
-      if( PassTrigger(ThisTrigger) && (loose_el.size()!=0) ){
-	if(HLT_ptmin[ThisTrigger] > loose_el.at(0).Pt()) continue;
+      if( PassTrigger(ThisTrigger) && (loose_el.size() > 0 ) ){
+	double max_loose_el_pt = 0.;
+	for(unsigned int i_loose_e = 0; i_loose_e < loose_el.size(); i_loose_e ++){
+	  if(loose_el.at(i_loose_e).Pt() > max_loose_el_pt) max_loose_el_pt = loose_el.at(i_loose_e).Pt();
+	}
+	
+	if(HLT_ptmin[ThisTrigger] > max_loose_el_pt) continue;
 	double triggerweight = 0.;
-	if(ThisTrigger.Contains("Photon22") ) triggerweight = 1.599;
-	else if(ThisTrigger.Contains("Photon30") ) triggerweight = 6.615;
-	else if(ThisTrigger.Contains("Photon36") ) triggerweight = 13.141;
-        else if(ThisTrigger.Contains("Photon50") ) triggerweight = 31.008;
-        else if(ThisTrigger.Contains("Photon75") ) triggerweight = 134.618;
-        else if(ThisTrigger.Contains("Photon90") ) triggerweight = 264.215;
-        else if(ThisTrigger.Contains("Photon120") ) triggerweight = 537.352;
-        else if(ThisTrigger.Contains("Photon175") ) triggerweight = 35860.065;
+	if(ThisTrigger.Contains("_Photon22_") ) triggerweight = 1.599;
+	else if(ThisTrigger.Contains("_Photon30_") ) triggerweight = 6.615;
+	else if(ThisTrigger.Contains("_Photon36_") ) triggerweight = 13.141;
+        else if(ThisTrigger.Contains("_Photon50_") ) triggerweight = 31.008;
+        else if(ThisTrigger.Contains("_Photon75_") ) triggerweight = 134.618;
+        else if(ThisTrigger.Contains("_Photon90_") ) triggerweight = 264.215;
+        else if(ThisTrigger.Contains("_Photon120_") ) triggerweight = 537.352;
+        else if(ThisTrigger.Contains("_Photon175_") ) triggerweight = 35860.065;
 	else triggerweight = 0.;
 	
 	double this_weight = weight * electron_id_iso_sf * electron_RecoSF * triggerweight * pileup_reweight;
@@ -420,18 +468,17 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	  this_weight = 1.;
 	  weight_noID = 1.;
 	}
-	if(ThisTrigger.Contains("PFJet40")){
-          if(For_HLT_Mu3_PFJet40_v==0) this_weight = 0.;
-        }
 	
 	snu::KEvent Event = eventbase->GetEvent();
 	int nvtx = Event.nVertices();
 	
 	//==== 1) Z-Peak
-        if(tightelectrons.size()==2){
-          double mll = (tightelectrons.at(0)+tightelectrons.at(1)).M();
-          if( (tightelectrons.at(0).Pt() > HLT_ptmin[ThisTrigger] ) && (tightelectrons.at(1).Pt() > 20.) && (fabs(mll-m_Z) < 10.) ){
-            FillHist(ThisTrigger+"_ZPeak_mll", mll, this_weight, 0., 200., 200);
+        if(tightelectrons.size() == 2){
+          double mll = (tightelectrons.at(0) + tightelectrons.at(1)).M();
+          //if( (tightelectrons.at(0).Pt() > HLT_ptmin[ThisTrigger] ) && (tightelectrons.at(1).Pt() > 20.) && (fabs(mll-m_Z) < 10.) ){
+	  if( (tightelectrons.at(0).Pt() > HLT_ptmin[ThisTrigger]) && (tightelectrons.at(1).Pt() > 20.) && (fabs(mll-m_Z) < 10.) ){
+	    
+	    FillHist(ThisTrigger+"_ZPeak_mll", mll, this_weight, 0., 200., 200);
             FillHist(ThisTrigger+"_ZPeak_leadpt", tightelectrons.at(0).Pt(), this_weight, 0., 500., 500);
             FillHist(ThisTrigger+"_ZPeak_subleadpt", tightelectrons.at(1).Pt(), this_weight, 0., 500., 500);
 	    FillHist(ThisTrigger+"_ZPeak_Nvtx", nvtx, this_weight, 0., 70., 70);
@@ -476,7 +523,7 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	  }	
 	}
 	
-	if(tightelectrons.size()==1 && tightelectrons.at(0).Pt() > HLT_ptmin[ThisTrigger]){
+	if(tightelectrons.size() == 1 && tightelectrons.at(0).Pt() > HLT_ptmin[ThisTrigger]){
           double MTval = AnalyzerCore::MT( tightelectrons.at(0), metvec );
           FillHist(ThisTrigger + "MT_MET_MT_inclusive_tight", MTval, this_weight, 0., 500., 500);
 	  
@@ -485,7 +532,7 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
             FillHist(ThisTrigger+"_W_John_MT", MTval, this_weight, 0., 500., 500);
             FillHist(ThisTrigger+"_W_John_leadpt", tightelectrons.at(0).Pt(), this_weight, 0., 500., 500);
 	    FillHist(ThisTrigger+"_W_John_Nvtx", nvtx, this_weight, 0., 70., 70);
-
+	    
 	    for(int ID_i = 0; ID_i < 2; ID_i++){
 	      FillHist(ThisTrigger+"_W_John_PFMET_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], METauto, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
               FillHist(ThisTrigger+"_W_John_MT_Nvtx_reweight_" + electron_id_iso_sf_string[ID_i], MTval, weight_noID * electron_id_iso_sf_syst[ID_i], 0., 500., 500);
@@ -622,7 +669,7 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	  FillHist("MET_VS_MT_UseEvent_loose", METauto, MTval, this_weight * weight_by_pt * electron_RecoSF, 0., 200., 20., 0., 200., 20);
           FillHist("MET_VS_Ptcone_UseEvent_loose", METauto, conept, this_weight * weight_by_pt * electron_RecoSF, 0., 200., 20., 0., 200., 20);
           FillHist("MET_VS_Eta_UseEvent_loose", METauto, electron.Eta(), this_weight * weight_by_pt * electron_RecoSF, 0., 200., 20., -3., 3., 100);
-          FillHist("Ptcone_UseEvent_loose", conept, this_weight * weight_by_pt * electron_RecoSF, 0., 200., 200);
+          FillHist("Ptcone_UseEvent_loose", conept, this_weight * weight_by_pt * electron_RecoSF, 0., 500., 500);
 	  FillHist("Eta_UseEvent_loose", electron.Eta(), this_weight * weight_by_pt * electron_RecoSF, -3., 3., 100);
 	}
 	
@@ -664,7 +711,7 @@ void Electron_FR_cal_all::RunFakes(TString tight_ID, TString loose_ID, std::vect
 	    FillHist("MET_VS_MT_UseEvent_tight", METauto, MTval, this_weight * weight_by_pt * SFs, 0., 200., 20., 0., 200., 20);
 	    FillHist("MET_VS_Ptcone_UseEvent_tight", METauto, conept, this_weight * weight_by_pt * SFs, 0., 200., 20., 0., 200., 20);
 	    FillHist("MET_VS_Eta_UseEvent_tight", METauto, electron.Eta(), this_weight * weight_by_pt * SFs, 0., 200., 20., -3., 3., 100);
-	    FillHist("Ptcone_UseEvent_tight", conept, this_weight * weight_by_pt * SFs, 0., 200., 200);
+	    FillHist("Ptcone_UseEvent_tight", conept, this_weight * weight_by_pt * SFs, 0., 500., 500);
 	    FillHist("Eta_UseEvent_tight", electron.Eta(), this_weight * weight_by_pt * SFs, -3., 3., 100);
 	  }
 	}// if istight = apply SFs for tight lepton
@@ -714,7 +761,7 @@ void Electron_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_I
 
   HLT_ptrange["HLT_Photon175_v"].push_back(280.);
   HLT_ptrange["HLT_Photon175_v"].push_back(9999.);
-  HLT_ptmin["HLT_Photon175_v"] = 185.;
+  HLT_ptmin["HLT_Photon175_v"] = 190.;
   
 
   std::vector<TString> AllHLTs;
@@ -875,10 +922,12 @@ void Electron_FR_cal_all::RunFakes_subtraction(TString tight_ID, TString loose_I
     //now we have jets(normal jet selection with systematic up & down) and muons(loose ID with up & down E) & muons_veto, also METauto & METphiauto with correct shift
     int For_HLT_Mu3_PFJet40_v = 0;
     int n_bjets = 0;
+    /*
     for(unsigned int i = 0; i < jets.size(); i++){
       if( IsBTagged(jets.at(i), snu::KJet::CSVv2, snu::KJet::Medium) ) n_bjets++;
       if( jets.at(i).Pt() > 50. ) For_HLT_Mu3_PFJet40_v++;
     }
+    */
     if(debugging) cout << "electrons_veto.size() != 1 : " << electrons_veto.size() <<endl;
     if(electrons_veto.size() != 1) continue; //return; // one e 
     if(debugging) cout << "jets.size() : " << jets.size() << endl;

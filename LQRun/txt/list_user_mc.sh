@@ -73,8 +73,12 @@ declare -a hn_ll_mm_tchan=( 'HNDilepton_MuMu_Tchannel_M300'   'HNDilepton_MuMu_T
 declare -a tmplist=('DYJets_MG_10to50_TrigInfoSample' 'DYJets_MG_TrigInfoSample' 'TT_powheg_TrigInfoSample')
 
 #declare -a fake_sub_big=('DYJets' 'TT_powheg' 'TTLL_powheg' 'DYJets_10to50')
-declare -a fake_sub_big=('DYJets' 'WJets' 'TT_powheg' 'DYJets_10to50')
-declare -a fake_sub_small=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZ' 'ZZ' 'WW')
+declare -a fake_sub_big=('DY50plus' 'WJets' 'TT_powheg' 'DY10to50')
+declare -a fake_sub_small=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZTo3LNu_powheg' 'ZZTo4L_powheg' 'WWTo2L2Nu' 'WWToLNuQQ')
+declare -a fake_sub_big_807=('DYJets' 'WJets' 'TT_powheg' 'DYJets_10to50')
+declare -a fake_sub_small_807=('SingleTop_s' 'SingleTop_t' 'SingleTbar_t' 'SingleTop_tW' 'SingleTbar_tW' 'WZ' 'ZZ' 'WW')
+declare -a DY_pt_binned=('DY_pt_0to50' 'DY_pt_50to100' 'DY_pt_100to250' 'DY_pt_250to400' 'DY_pt_400to650' 'DY_pt_650toinf')
+
 declare -a MC_big=('TT_powheg' 'TTLL_powheg')
 declare -a DY_amcnlo=('DYJets' 'DYJets_10to50')
 

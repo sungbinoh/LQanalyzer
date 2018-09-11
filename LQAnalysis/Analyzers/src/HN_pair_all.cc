@@ -235,6 +235,225 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   std::vector<snu::KTruth> truthColl;
   eventbase->GetTruthSel()->Selection(truthColl);
 
+  //cout << "truthcoll.size() : " << truthColl.size() << endl;
+  cout << "-------------------------------" << endl;
+  
+  std::vector<unsigned int> HN_index;
+  std::vector<unsigned int> Zp_index;
+  HN_index.clear();
+  Zp_index.clear();
+  
+  for(unsigned int i_truth = 0; i_truth < truthColl.size(); i_truth++){
+    
+    //cout << i_truth << " : pdgid = " << truthColl.at(i_truth).PdgId() << endl;
+    // -- save HN index
+    if(truthColl.at(i_truth).PdgId() == 9900014) HN_index.push_back(i_truth);
+    
+    // -- save Z' index
+    if(truthColl.at(i_truth).PdgId() ==9900023 || truthColl.at(i_truth).PdgId() == 32) Zp_index.push_back(i_truth);
+    
+  }
+  
+  std::vector<unsigned int> HN1_daughter_index;
+  std::vector<unsigned int> HN2_daughter_index;
+  std::vector<TLorentzVector> HN1_quarks;
+  std::vector<TLorentzVector> HN2_quarks;
+  TLorentzVector HN1_lepton, HN2_lepton;
+  bool HN1_lepton_bool = false, HN2_lepton_bool = false;
+  HN1_daughter_index.clear();
+  HN2_daughter_index.clear();
+  for(unsigned int i_truth = 0; i_truth < truthColl.size(); i_truth++){
+    if( truthColl.at(i_truth).IndexMother() == HN_index.at(0) ){
+      HN1_daughter_index.push_back(i_truth);
+      snu::KTruth current_truth = truthColl.at(i_truth);
+      TLorentzVector current_vec;
+      current_vec.SetPtEtaPhiM(current_truth.Pt(), current_truth.Eta(), current_truth.Phi(), current_truth.M() );
+      if(abs(current_truth.PdgId()) < 10) HN1_quarks.push_back(current_vec);
+      else{ 
+	HN1_lepton = current_vec;
+	HN1_lepton_bool = true;
+      }
+    }
+    if( truthColl.at(i_truth).IndexMother() == HN_index.at(1) ){
+      HN2_daughter_index.push_back(i_truth);
+      snu::KTruth current_truth= truthColl.at(i_truth);
+      TLorentzVector current_vec;
+      current_vec.SetPtEtaPhiM(current_truth.Pt(), current_truth.Eta(), current_truth.Phi(), current_truth.M() );
+      if(abs(current_truth.PdgId()) < 10) HN2_quarks.push_back(current_vec);
+      else{
+	HN2_lepton = current_vec;
+	HN2_lepton_bool = true;
+      }
+    }
+  }
+  
+  if(HN1_daughter_index.size() != 3 || HN2_daughter_index.size() != 3) return;
+  if(HN1_quarks.size() != 2 || HN2_quarks.size() != 2 || !HN1_lepton_bool || !HN2_lepton_bool) return;
+
+
+  snu::KTruth HN1 = truthColl.at(HN_index.at(0));
+  snu::KTruth HN2 = truthColl.at(HN_index.at(1));
+
+  TLorentzVector HN1_vec, HN2_vec;
+  HN1_vec.SetPtEtaPhiM(HN1.Pt(), HN1.Eta(), HN1.Phi(), HN1.M() );
+  HN2_vec.SetPtEtaPhiM(HN2.Pt(), HN2.Eta(), HN2.Phi(), HN2.M() );
+  
+  cout << "before boost" << endl;
+  cout << "HN1_vec.Px() : " << HN1_vec.Px() << ", HN1_vec.Py() : " << HN1_vec.Py() << " , HN1_vec.Pz() : " << HN1_vec.Pz() << endl;
+  cout << "HN2_vec.Px() : " << HN2_vec.Px() << ", HN2_vec.Py() : " << HN2_vec.Py() << " , HN2_vec.Pz() : " << HN2_vec.Pz() << endl;
+
+  TVector3 HN1_boost, HN2_boost;
+  HN1_boost = HN1_vec.BoostVector();
+  HN2_boost = HN2_vec.BoostVector();
+  
+  cout << "after boost" << endl;
+  
+  HN1_vec.Boost(-1 * HN1_boost);
+  HN2_vec.Boost(-1 * HN2_boost);
+
+  cout << "HN1_vec.Px() : " << HN1_vec.Px() << ", HN1_vec.Py() : " << HN1_vec.Py() << " , HN1_vec.Pz() : " << HN1_vec.Pz() << endl;
+  cout << "HN2_vec.Px() : " << HN2_vec.Px() << ", HN2_vec.Py() : " << HN2_vec.Py() << " , HN2_vec.Pz() : " << HN2_vec.Pz() << endl;
+  
+
+
+
+  // -- boost daughters of HNs to rest frame of HNs
+  HN1_quarks.at(0).Boost(-1 * HN1_boost);
+  HN1_quarks.at(1).Boost(-1 * HN1_boost);
+  HN2_quarks.at(0).Boost(-1 * HN2_boost);
+  HN2_quarks.at(1).Boost(-1 * HN2_boost);
+  HN1_lepton.Boost(-1 * HN1_boost);
+  HN2_lepton.Boost(-1 * HN2_boost);
+  
+  
+
+
+  double HN1_quarks_P_diff = fabs( HN1_quarks.at(0).P() - HN1_quarks.at(1).P() );
+  double HN2_quarks_P_diff = fabs( HN2_quarks.at(0).P() - HN2_quarks.at(1).P() );
+  double HN1_WR_M = (HN1_quarks.at(0) + HN1_quarks.at(1)).M();
+  double HN2_WR_M = (HN2_quarks.at(0) + HN2_quarks.at(1)).M();
+  
+  FillHist("HN1_quarks_P_diff", HN1_quarks_P_diff, 1., 0., 1000., 1000);
+  FillHist("HN2_quarks_P_diff", HN2_quarks_P_diff, 1., 0., 1000., 1000);
+  FillHist("HN_quarks_P_diff", HN1_quarks_P_diff, 1., 0., 1000., 1000);
+  FillHist("HN_quarks_P_diff", HN2_quarks_P_diff, 1., 0., 1000., 1000);
+
+  FillHist("HN1_WR_M", HN1_WR_M, 1., 0., 1000., 1000);
+  FillHist("HN2_WR_M", HN2_WR_M, 1., 0., 1000., 1000);
+  FillHist("HN_WR_M", HN1_WR_M, 1., 0., 1000., 1000);
+  FillHist("HN_WR_M", HN2_WR_M, 1., 0., 1000., 1000);
+
+  FillHist("HN1_lepton_pt", HN1_lepton.Pt(), 1., 0., 1000., 1000);
+  FillHist("HN2_lepton_pt", HN2_lepton.Pt(), 1., 0., 1000., 1000);
+  FillHist("HN_lepton_pt", HN1_lepton.Pt(), 1., 0., 1000., 1000);
+  FillHist("HN_lepton_pt", HN2_lepton.Pt(), 1., 0., 1000., 1000);
+  
+  FillHist("HN1_pt", truthColl.at(HN_index.at(0)).Pt(), 1., 0., 1000., 1000);
+  FillHist("HN2_pt", truthColl.at(HN_index.at(1)).Pt(), 1., 0., 1000., 1000);
+  FillHist("HN_pt", truthColl.at(HN_index.at(0)).Pt(), 1., 0., 1000., 1000);
+  FillHist("HN_pt", truthColl.at(HN_index.at(1)).Pt(), 1., 0., 1000., 1000);
+  
+  cout << "[[before rotation]]" << endl;
+  cout << "HN1_quarks.at(0) P = (" << HN1_quarks.at(0).Px() << ", " << HN1_quarks.at(0).Py()  << ", " << HN1_quarks.at(0).Pz()  << ") = " << HN1_quarks.at(0).P() << endl;
+  cout << "HN1_quarks.at(1) P = (" << HN1_quarks.at(1).Px() << ", " << HN1_quarks.at(1).Py()  << ", " << HN1_quarks.at(1).Pz()  << ") = " << HN1_quarks.at(1).P() << endl;
+  cout << "HN1_lepton       P = (" << HN1_lepton.Px() << ", " << HN1_lepton.Py()  << ", " << HN1_lepton.Pz()  << ") = " << HN1_lepton.P() << endl;
+  
+
+  // -- rotate to X-Y plane for two quarts + lepton from same HN
+  double HN1_lepton_phi = HN1_lepton.Phi();
+  double HN1_lepton_theta = HN1_lepton.Theta();
+  
+  HN1_quarks.at(0).RotateZ(-1 * HN1_lepton_phi);
+  HN1_quarks.at(1).RotateZ(-1 * HN1_lepton_phi);
+  HN1_lepton.RotateZ(-1 * HN1_lepton_phi);
+
+  
+  HN1_quarks.at(0).RotateY(-1 * HN1_lepton_theta);
+  HN1_quarks.at(1).RotateY(-1 * HN1_lepton_theta);
+  HN1_lepton.RotateY(-1 * HN1_lepton_theta); // -- now lepton is on the Z-axis
+  
+  cout << "[[lepton is on Z axis]]" << endl;
+  cout << "HN1_quarks.at(0) P = (" << HN1_quarks.at(0).Px() << ", " << HN1_quarks.at(0).Py()  << ", " << HN1_quarks.at(0).Pz()  << ") = " << HN1_quarks.at(0).P() << endl;
+  cout << "HN1_quarks.at(1) P = (" << HN1_quarks.at(1).Px() << ", " << HN1_quarks.at(1).Py()  << ", " << HN1_quarks.at(1).Pz()  << ") = " << HN1_quarks.at(1).P() << endl;
+  cout << "HN1_lepton       P = (" << HN1_lepton.Px() << ", " << HN1_lepton.Py()  << ", " << HN1_lepton.Pz()  << ") = " << HN1_lepton.P() << endl;
+
+
+  double HN1_quark1_phi = HN1_quarks.at(0).Phi();
+  HN1_quarks.at(0).RotateZ(-1 * HN1_quark1_phi);
+  HN1_quarks.at(1).RotateZ(-1 * HN1_quark1_phi);
+  HN1_lepton.RotateZ(-1 * HN1_quark1_phi); // -- now three particles are on Z-X plane
+  
+  HN1_quarks.at(0).RotateX(-0.5 * TMath::Pi());
+  HN1_quarks.at(1).RotateX(-0.5 * TMath::Pi());
+  HN1_lepton.RotateX(-0.5 * TMath::Pi());
+  
+  cout << "[[after all rotations]]" << endl;
+  cout << "HN1_quarks.at(0) P = (" << HN1_quarks.at(0).Px() << ", " << HN1_quarks.at(0).Py()  << ", " << HN1_quarks.at(0).Pz()  << ") = " << HN1_quarks.at(0).P() << endl;
+  cout << "HN1_quarks.at(1) P = (" << HN1_quarks.at(1).Px() << ", " << HN1_quarks.at(1).Py()  << ", " << HN1_quarks.at(1).Pz()  << ") = " << HN1_quarks.at(1).P() << endl;
+  cout << "HN1_lepton       P = (" << HN1_lepton.Px() << ", " << HN1_lepton.Py()  << ", " << HN1_lepton.Pz()  << ") = " << HN1_lepton.P() << endl;
+  
+  
+
+  double HN2_lepton_phi = HN2_lepton.Phi();
+  double HN2_lepton_theta = HN2_lepton.Theta();
+
+  HN2_quarks.at(0).RotateZ(-1 * HN2_lepton_phi);
+  HN2_quarks.at(1).RotateZ(-1 * HN2_lepton_phi);
+  HN2_lepton.RotateZ(-1 * HN2_lepton_phi);
+
+
+  HN2_quarks.at(0).RotateY(-1 * HN2_lepton_theta);
+  HN2_quarks.at(1).RotateY(-1 * HN2_lepton_theta);
+  HN2_lepton.RotateY(-1 * HN2_lepton_theta); // -- now lepton is on the Z-axis                                                                                                                                                                                                  
+
+  cout << "[[lepton is on Z axis]]" << endl;
+  cout << "HN2_quarks.at(0) P = (" << HN2_quarks.at(0).Px() << ", " << HN2_quarks.at(0).Py()  << ", " << HN2_quarks.at(0).Pz()  << ") = " << HN2_quarks.at(0).P() << endl;
+  cout << "HN2_quarks.at(1) P = (" << HN2_quarks.at(1).Px() << ", " << HN2_quarks.at(1).Py()  << ", " << HN2_quarks.at(1).Pz()  << ") = " << HN2_quarks.at(1).P() << endl;
+  cout << "HN2_lepton       P = (" << HN2_lepton.Px() << ", " << HN2_lepton.Py()  << ", " << HN2_lepton.Pz()  << ") = " << HN2_lepton.P() << endl;
+
+
+  double HN2_quark1_phi = HN2_quarks.at(0).Phi();
+  HN2_quarks.at(0).RotateZ(-1 * HN2_quark1_phi);
+  HN2_quarks.at(1).RotateZ(-1 * HN2_quark1_phi);
+  HN2_lepton.RotateZ(-1 * HN2_quark1_phi); // -- now three particles are on Z-X plane                                                                                                                                                                                           
+
+  HN2_quarks.at(0).RotateX(-0.5 * TMath::Pi());
+  HN2_quarks.at(1).RotateX(-0.5 * TMath::Pi());
+  HN2_lepton.RotateX(-0.5 * TMath::Pi());
+
+  cout << "[[after all rotations]]" << endl;
+  cout << "HN2_quarks.at(0) P = (" << HN2_quarks.at(0).Px() << ", " << HN2_quarks.at(0).Py()  << ", " << HN2_quarks.at(0).Pz()  << ") = " << HN2_quarks.at(0).P() << endl;
+  cout << "HN2_quarks.at(1) P = (" << HN2_quarks.at(1).Px() << ", " << HN2_quarks.at(1).Py()  << ", " << HN2_quarks.at(1).Pz()  << ") = " << HN2_quarks.at(1).P() << endl;
+  cout << "HN2_lepton       P = (" << HN2_lepton.Px() << ", " << HN2_lepton.Py()  << ", " << HN2_lepton.Pz()  << ") = " << HN2_lepton.P() << endl;
+  
+  FillHist("HN1_lqq_dist", HN1_quarks.at(0).Px(), HN1_quarks.at(0).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN1_lqq_dist", HN1_quarks.at(1).Px(), HN1_quarks.at(1).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN1_lqq_dist", HN1_lepton.Px(), HN1_lepton.Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+ 
+  FillHist("HN2_lqq_dist", HN2_quarks.at(0).Px(), HN2_quarks.at(0).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN2_lqq_dist", HN2_quarks.at(1).Px(), HN2_quarks.at(1).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN2_lqq_dist", HN2_lepton.Px(), HN2_lepton.Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+
+  FillHist("HN_lqq_dist", HN1_quarks.at(0).Px(), HN1_quarks.at(0).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_lqq_dist", HN1_quarks.at(1).Px(), HN1_quarks.at(1).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_lqq_dist", HN1_lepton.Px(), HN1_lepton.Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_lqq_dist", HN2_quarks.at(0).Px(), HN2_quarks.at(0).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_lqq_dist", HN2_quarks.at(1).Px(), HN2_quarks.at(1).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_lqq_dist", HN2_lepton.Px(), HN2_lepton.Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+
+  FillHist("HN_qq_dist", HN1_quarks.at(0).Px(), HN1_quarks.at(0).Py(), 1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_qq_dist", HN1_quarks.at(1).Px(), HN1_quarks.at(1).Py(),1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_qq_dist", HN2_quarks.at(0).Px(), HN2_quarks.at(0).Py(),1., -500., 500., 100, -500., 500., 100, "", "");
+  FillHist("HN_qq_dist", HN2_quarks.at(1).Px(), HN2_quarks.at(1).Py(),1., -500., 500., 100, -500., 500., 100, "", "");
+  
+  
+  return;//return to run only truthColl
+
+
+
+
+
+
   //remove flavour mixing for signal samples
   bool has_Nmix = false;
   int another_neutrino_1 = 9999999, another_neutrino_2 = 9999999;

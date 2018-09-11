@@ -1,17 +1,17 @@
 #bkg MC
-#sktree -a HN_pair_all -s SKTree_DiLepSkim -list MC_big -n 100 #-F
+#sktree -a HN_pair_all -s SKTree_DiLepSkim -list fake_sub_big -n 100 #-F
 #sktree -a HN_pair_all -s SKTree_DiLepSkim -list DY_amcnlo -userflag tau_veto -n 100 #-F
-#sktree -a HN_pair_all -s SKTree_DiLepSkim -list MC_small -n 20 #-F
+sktree -a HN_pair_all -s SKTree_DiLepSkim -list fake_sub_small -n 20 #-F
 #sktree -a HN_pair_all -s SKTree_LeptonSkim -list DY_mass_binned -n 20
 
 #bkg fake
-sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
-sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
+#sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
+#sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -userflag RunFake -o /data2/CAT_SKTreeOutput/JobOutPut/suoh/LQanalyzer/data/output/CAT/HN_pair_all/periodBtoH/Fake -n 40 -F
 #sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -p B -userflag RunFake -n 1 -events 1000000
 
 #Data
-#sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -n 30 #-F
-#sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -n 30 #-F
+sktree -a HN_pair_all -S SingleMuon -s SKTree_DiLepSkim -n 30 #-F
+sktree -a HN_pair_all -S DoubleEG -s SKTree_DiLepSkim -n 30 #-F
 
 #CF
 #sktree -a CF_MC -s SKTree_LeptonSkim -list MC_CF -n 40
