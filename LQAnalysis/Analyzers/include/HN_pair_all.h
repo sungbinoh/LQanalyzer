@@ -21,21 +21,23 @@ class HN_pair_all : public AnalyzerCore {
   void InitialiseAnalysis() throw( LQError );
   void MakeHistograms();
   void FillCutFlow(TString cut, float w);
-  void Signal_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
+  void ExecuteEventFromSyst(std::vector<snu::KElectron> electron_all, std::vector<snu::KMuon> muons_all, std::vector<snu::KJet> jets_all, std::vector<snu::KFatJet> fatjets_all, TString syst_flag);
+  void SR(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
   void Control_region_1(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
-  void Control_region_2(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
-  void Control_region_3(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
-  void Control_region_4(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
-  void Control_region_5(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, TString electron_tight_id, TString muon_tight_id, bool NonPromptRun);
+  void CR_Z_mass(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
+  void CR_ttbar_dom(TString channel, bool trigger_pass, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KMuon> muons, int N_electron, int N_veto_ele, int N_muon, int N_veto_muon, bool NonPromptRun);
   bool JSFatJetID(snu::KFatJet fatjet);
   bool IsAwayFromFatJet(snu::KJet jet, vector<snu::KFatJet> fatjets);
-  double GetFRWeight_SB(std::vector<KLepton> loose_lepColl, bool lep_1_tight, bool lep_2_tight);
-  double GetFRWeight_tri_SB(std::vector<KLepton> loose_lepColl, bool lep_1_tight, bool lep_2_tight, bool lep_3_tight, bool geterr);
-  double GetCFWeight_SB(std::vector<KLepton> Leptons);
-  std::map< TString, TH2D* > hist_data_driven;
-  std::map< TString, TH1D* > hist_CF;
-  double weight_fake;
-  double weight_CF;
+  vector<snu::KParticle> RecoPairN(std::vector<KLepton> lepptrs, vector<snu::KFatJet> fatjets, vector<snu::KJet> jets);
+  std::vector<snu::KElectron> ElectronUsePtScale(std::vector<snu::KElectron> electrons, int up_down);
+  std::vector<snu::KMuon> MuonUsePtScale(std::vector<snu::KMuon> muons, int up_down);
+  std::vector<snu::KJet> JetUsePtScale(std::vector<snu::KJet> jets, int up_down);
+  std::vector<snu::KJet> JetUsePtRes(std::vector<snu::KJet> jets, int up_down);
+  std::vector<snu::KFatJet> FatJetUsePtScale(std::vector<snu::KFatJet> fatjets, int up_down);
+  std::vector<snu::KFatJet> FatJetUsePtRes(std::vector<snu::KFatJet> fatjets, int up_down);
+  
+  
+  
  private:
 
   //
