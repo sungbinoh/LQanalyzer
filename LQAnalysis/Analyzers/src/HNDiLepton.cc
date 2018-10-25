@@ -176,9 +176,13 @@ void HNDiLepton::DoCutFlow(float w){
 
 void HNDiLepton::ExecuteEvents()throw( LQError ){
 
+
+
+  
   PassTrigger("HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_v");
     
 
+  
   if(k_running_nonprompt){
     while(!fake_configured){
       /// SET UP OWN FAKES HISTS --> KEY ////                                                                                                                                                                                                                                    
