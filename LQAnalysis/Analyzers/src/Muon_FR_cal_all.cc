@@ -225,7 +225,7 @@ void Muon_FR_cal_all::ExecuteEvents()throw( LQError ){
 
 
 
-  return;
+  //return; // -- return to run only for hist above
     
 
   std::vector<snu::KElectron> elColl = GetElectrons("ELECTRON_HN_VETO");
@@ -1120,7 +1120,7 @@ void Muon_FR_cal_all::FillDenAndNum(TString prefix, snu::KMuon muon, double this
   //float ptarray [] = {0., 10., 20., 30., 40., 50., 60., 70.};
   //float ptarray [] = {5., 10., 20., 30., 40., 50., 60., 70.};
   //float ptarray [] = {35, 45, 75, 80, 110, 150, 200, 250, 300, 350, 500, 1000, 1500, 2000};
-    float ptarray [] = {35, 45, 55, 65, 80,  95,  110, 125, 140, 200, 250, 300,  350,  500, 1000, 1500, 2000};
+  float ptarray [] = {35, 45, 55, 65, 80,  95,  110, 125, 140, 200, 250, 300,  350,  500, 1000, 1500, 2000};
   
   
   //float ptaaray [] = {5., 12., };

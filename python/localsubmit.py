@@ -1000,7 +1000,8 @@ for i in range(1,number_of_cores+1):
         if queue == "":
             runcommand = "qsub -V " + batchscript   + "&>" + log 
         else:
-            runcommand = "qsub -V  " + queue_command +" " + batchscript   + "&>" + log
+#            runcommand = "qsub -V  " + queue_command +" " + batchscript   + "&>" + log
+            runcommand = "qsub -V  -l 'h=!cms-0-[1-4]' " + queue_command +" " + batchscript   + "&>" + log
     jobID=0
     first_jobid=0
 
