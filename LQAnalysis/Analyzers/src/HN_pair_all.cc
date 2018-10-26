@@ -177,15 +177,15 @@ void HN_pair_all::ExecuteEvents()throw( LQError ){
   FatJets_all_syst.push_back(FatJets_all_Scale_Down);
   FatJets_all_syst.push_back(FatJets_all_Res_Up);
   FatJets_all_syst.push_back(FatJets_all_Res_Down);
-
-
+  
+  
   // ==== Define Systematic flag strings and order  
   const int N_systs = 9;
   TString syst_flags[N_systs] = {"central", "ElectronScaleUp", "ElectronScaleDown", "MuonScaleUp", "MuonScaleDown", "JetsScaleUp", "JetsScaleDown", "JetsResUp", "JetsResDown"};
   int electron_index[N_systs] = {0        , 1                , 2                  , 0            , 0              , 0            , 0              , 0          , 0            };
   int muon_index[N_systs]     = {0        , 0                , 0                  , 1            , 2              , 0            , 0              , 0          , 0            };
   int jet_index[N_systs]      = {0        , 0                , 0                  , 0            , 0              , 1            , 2              , 3          , 4            };
-    
+  
   for(int i_syst = 0; i_syst < N_systs; i_syst++){
     ExecuteEventFromSyst( electrons_all_syst.at(electron_index[i_syst]), muons_all_syst(muon_index[i_syst]), Jets_all_syst.at(jet_index[i_syst]), FatJets_all_syst.at(jet_index[i_syst]), syst_flags[i_syst] );
   }
