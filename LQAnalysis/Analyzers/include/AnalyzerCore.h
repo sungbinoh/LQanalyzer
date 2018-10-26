@@ -152,6 +152,9 @@ class AnalyzerCore : public LQCycleBase {
 
   void FillHistPerLumi(TString histname, float value, float w, float xmin, float xmax,int nbins, int nlumibins);
 
+  bool HasLeptonInsideJet(snu::KJet jet, std::vector<snu::KMuon> mus, std::vector<snu::KElectron> els);
+  snu::KParticle AddFatJetAndLepton(snu::KFatJet fatjet, KLepton lep);
+
   bool HasCloseBJet(snu::KElectron el, snu::KJet::Tagger tag=snu::KJet::CSVv2 , snu::KJet::WORKING_POINT wp= snu::KJet::Medium, int mcperiod=-1);
   int NBJet(std::vector<snu::KJet> jets,  snu::KJet::Tagger tag=snu::KJet::CSVv2, snu::KJet::WORKING_POINT wp = snu::KJet::Medium, int mcperiod=-1);
 
@@ -270,6 +273,10 @@ class AnalyzerCore : public LQCycleBase {
   map<TString, TH1*> maphist;
   map<TString, TH2*> maphist2D;
   map<TString, TH3*> maphist3D;
+  std::map< TString, std::map<TString, TH1D*> > JSmaphist_TH1D;
+  TH1D* JSGetHist1D(TString suffix, TString histname);
+  void JSFillHist(TString suffix, TString histname, double value, double weight, int n_bin, double x_min, double x_max);
+  void FillLeptonPlots(std::vector<KLepton> leps, TString this_region, double weight);
   map<TString, TNtupleD*> mapntp;
   map<int, int> compmap;
   map<int, int> compmap2;

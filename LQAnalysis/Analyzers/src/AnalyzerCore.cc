@@ -2078,7 +2078,6 @@ std::vector<snu::KMuon> AnalyzerCore::GetMuons(TString muid, bool keepfakes, flo
   
 }
 
-
 std::vector<snu::KElectron> AnalyzerCore::GetElectrons(TString elid,float ptcut, float etacut){
 
   if(k_classname.Contains("HNDiElectronOpt")){
@@ -2193,7 +2192,30 @@ std::vector<snu::KElectron> AnalyzerCore::GetElectrons(bool keepcf, bool keepfak
 
 }
 
+bool AnalyzerCore::HasLeptonInsideJet(snu::KJet jet, std::vector<snu::KMuon> mus, std::vector<snu::KElectron> els){
 
+
+  for(unsigned int i=0; i<mus.size(); i++){
+    if( jet.DeltaR( mus.at(i) ) < 0.4 ) return true;
+  }
+  for(unsigned int i=0; i<els.size(); i++){
+    if( jet.DeltaR( els.at(i) ) < 0.4 ) return true;
+  }
+
+  return false;
+
+}
+
+snu::KParticle AnalyzerCore::AddFatJetAndLepton(snu::KFatJet fatjet, KLepton lep){
+
+  if(fatjet.DeltaR( lep )<0.8){
+    return fatjet;
+  }
+  else{
+    return fatjet+lep;
+  }
+
+}
 
 
 bool AnalyzerCore::HasCloseBJet(snu::KElectron el, KJet::Tagger tag, KJet::WORKING_POINT wp, int period){
@@ -3577,6 +3599,56 @@ void AnalyzerCore::MakeHistograms2D(TString hname, int nbinsx,  float xbins[], i
   maphist2D[hname]->GetYaxis()->SetTitle(labely);
 }
 
+TH1D* AnalyzerCore::JSGetHist1D(TString suffix, TString histname){
+
+  TH1D *h = NULL;
+
+  std::map< TString, std::map<TString, TH1D*> >::iterator mapit = JSmaphist_TH1D.find(suffix);
+  if(mapit==JSmaphist_TH1D.end()){
+    return h;
+  }
+  else{
+
+    std::map<TString, TH1D*> this_maphist = mapit->second;
+    std::map<TString, TH1D*>::iterator mapitit = this_maphist.find(histname);
+    if(mapitit != this_maphist.end()) return mapitit->second;
+
+  }
+
+  return h;
+
+}
+
+void AnalyzerCore::JSFillHist(TString suffix, TString histname, double value, double weight, int n_bin, double x_min, double x_max){
+
+  TH1D *this_hist = JSGetHist1D(suffix, histname);
+  if( !this_hist ){
+
+    this_hist = new TH1D(histname, "", n_bin, x_min, x_max);
+    (JSmaphist_TH1D[suffix])[histname] = this_hist;
+
+  }
+
+  this_hist->Fill(value, weight);
+
+}
+
+void AnalyzerCore::FillLeptonPlots(std::vector<KLepton> leps, TString this_region, double weight){
+
+  for(unsigned int i=0; i<leps.size(); i++){
+
+    TString this_itoa = TString::Itoa(i,10);
+
+    KLepton lep = leps.at(i);
+
+    JSFillHist(this_region, "Lepton_"+this_itoa+"_Pt_"+this_region, lep.Pt(), weight, 1000, 0., 1000.);
+    JSFillHist(this_region, "Lepton_"+this_itoa+"_Eta_"+this_region, lep.Eta(), weight, 60, -3., 3.);
+
+  }
+
+}
+
+
 
 void AnalyzerCore::FillHist(TString histname, float value, float w, float xbins[], int nbins , TString label){
   m_logger << DEBUG << "FillHist : " << histname << LQLogger::endmsg;
@@ -4000,10 +4072,31 @@ void AnalyzerCore::WriteCLHists(){
 }
 
 void AnalyzerCore::WriteHists(){
-
+  
   /// Open Output rootfile
   m_outputFile->cd();
 
+  m_outputFile->cd();
+  for(std::map< TString, std::map<TString, TH1D*> >::iterator mapit=JSmaphist_TH1D.begin(); mapit!=JSmaphist_TH1D.end(); mapit++){
+
+    TString this_suffix = mapit->first;
+    std::map< TString, TH1D* > this_maphist = mapit->second;
+
+
+    TDirectory *dir = m_outputFile->GetDirectory(this_suffix);
+    if(!dir){
+      m_outputFile->mkdir(this_suffix);
+    }
+    m_outputFile->cd(this_suffix);
+
+    for(std::map< TString, TH1D* >::iterator mapit = this_maphist.begin(); mapit!=this_maphist.end(); mapit++){
+      mapit->second->Write();
+    }
+
+    m_outputFile->cd();
+
+  }
+  
   for(map<TString, TH1*>::iterator mapit = maphist.begin(); mapit != maphist.end(); mapit++){
     
     if(mapit->first.Contains("cutflow")){

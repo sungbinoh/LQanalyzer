@@ -14,6 +14,7 @@
 #pragma link C++ class HNDiLepton+;
 #pragma link C++ class HNDiElectronOptimisation+;
 #pragma link C++ class HNDiMuonOptimisation+;
+#pragma link C++ class HN_pair_all+;
 #pragma link C++ class FakeRateCalculator_FinalEl+;
 #pragma link C++ class FakeRateCalculator_El+;
 #pragma link C++ class FakeRateCalculator_Mu+;
