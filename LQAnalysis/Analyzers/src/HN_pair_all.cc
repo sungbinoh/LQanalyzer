@@ -300,7 +300,6 @@ void HN_pair_all::ExecuteEventFromSyst(std::vector<snu::KElectron> electron_all,
 
   
   SR(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
-  Control_region_1(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
   CR_Z_mass(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
   CR_ttbar_dom(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
   
@@ -380,7 +379,7 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
     FillHist("signal_eff", 16.5, weight, 0., 40., 40);
   }
   else return;
-
+  
   snu::KParticle Zp = Ns.at(0) + Ns.at(1);
   if(Ns.at(0).M() < 80 || Ns.at(1).M() < 80) return;
   if(Zp.M() < 300) return;
@@ -395,159 +394,13 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
     FillHist("signal_eff", 19.5, weight, 0., 40., 40);
   }
   else return;
+  TString Region_str = "SR_";
+
   FillLeptonPlots(Leptons, Region_str + channel, weight);
   JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
   JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(0).M(), weight, 5000, 0., 5000.);
   JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(1).M(), weight, 5000, 0., 5000.);
   
-}
-
-void HN_pair_all::Control_region_1(TString channel, bool trigger_pass, double current_weight, std::vector<snu::KJet> jets, std::vector<snu::KFatJet> fatjets, std::vector<snu::KElectron> electrons, std::vector<snu::KElectron> electrons_veto, std::vector<snu::KMuon> muons, std::vector<snu::KMuon> muons_veto,
-				   int N_electron, int N_veto_ele, int N_muon, int N_veto_muon){
-  // -- This functio covers two control regions
-  // -- 1. M(ll) < 130 GeV without M(lljjjj) cut
-  
-  bool debug = false;
-  
-  // -- Trigger pass
-  if(!trigger_pass) return;
-
-  
-  //check N lepton condition
-  bool pass_N_lep = false;
-  std::vector<KLepton> Leptons;
-  if(channel.Contains("DiEle")){
-    if(N_electron == 2 && N_veto_ele == 2 && N_veto_muon == 0){
-      pass_N_lep =true;
-      Leptons.push_back(electrons.at(0));
-      Leptons.push_back(electrons.at(1));
-    }
-  }
-  else if(channel.Contains("DiMu")){
-    if(N_muon == 2 && N_veto_muon == 2 && N_veto_ele == 0){
-      pass_N_lep =true;
-      Leptons.push_back(muons.at(0));
-      Leptons.push_back(muons.at(1));
-    }
-  }
-  else if(channel.Contains("EMu")){
-    if(N_muon == 1 && N_veto_muon ==1 && N_electron == 1 && N_veto_ele == 1){
-      pass_N_lep =true;
-      if(electrons.at(0).Pt() > muons.at(0).Pt()){
-	Leptons.push_back(electrons.at(0));
-        Leptons.push_back(muons.at(0));
-      }
-      else{
-	Leptons.push_back(muons.at(0));
-	Leptons.push_back(electrons.at(0));
-      }
-    }
-  }
-  else pass_N_lep = false;
-
-  if(!pass_N_lep) return;
-
-  
-  //if(debug) cout << "1 , trigger pass : " << trigger_pass << endl;
-  // -- return ! Pt(1st muon) > 60 GeV && Pt(2nd muon) > 20 GeV
-  double Lep_1st_Pt, Lep_2nd_Pt;
-  Lep_1st_Pt = Leptons.at(0).Pt();
-  Lep_2nd_Pt = Leptons.at(1).Pt();
-  if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
-
-  if(debug) cout << "2"<< endl;
-
-
-  std::vector<snu::KJet> jets_pt40;
-  for(int i = 0; i < jets.size(); i++){
-    if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
-  }
-
-  int nbjet=0;
-  for(unsigned int ij=0; ij <jets_pt40.size(); ij++){
-    if( IsBTagged(jets_pt40.at(ij),   snu::KJet::CSVv2, snu::KJet::Medium, -1, 0))  nbjet++;
-  }
-  if(nbjet == 0) return;
-
-  snu::KParticle ll = Leptons.at(0) + Leptons.at(1);
-  snu::KParticle lljjjj;
-
-  if(fatjets.size() == 0 && jets_pt40.size() > 3){
-    lljjjj = Leptons.at(0) + Leptons.at(1) + jets_pt40.at(0) + jets_pt40.at(1) + jets_pt40.at(2) + jets_pt40.at(3);
-  }
-  else if(fatjets.size() == 1 && jets_pt40.size() > 1){
-    bool lep_in_ak8 = false;
-
-    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
-    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(1));
-
-    KLepton closest_lep;
-    KLepton further_lep;
-
-    if(dR_fat_lep1 < dR_fat_lep2){
-      closest_lep = Leptons.at(0);
-      further_lep = Leptons.at(1);
-    }
-    else{
-      closest_lep = Leptons.at(1);
-      further_lep = Leptons.at(0);
-    }
-
-    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep_in_ak8 = true;
-
-    if(lep_in_ak8) lljjjj = fatjets.at(0) + further_lep + jets_pt40.at(0) + jets_pt40.at(1);
-    else lljjjj = closest_lep + further_lep + fatjets.at(0) + jets_pt40.at(0) + jets_pt40.at(1);
-  }
-  else if(fatjets.size() > 1){
-    
-    bool lep1_in_ak8 = false;
-    bool lep2_in_ak8 = false;
-    
-    double dR_fat_lep1 = fatjets.at(0).DeltaR(Leptons.at(0));
-    double dR_fat_lep2 = fatjets.at(0).DeltaR(Leptons.at(0));
-
-    KLepton closest_lep;
-    KLepton further_lep;
-    if(dR_fat_lep1 < dR_fat_lep2){
-      closest_lep = Leptons.at(0);
-      further_lep = Leptons.at(0);
-    }
-    else{
-      closest_lep = Leptons.at(0);
-    further_lep = Leptons.at(0);
-    }
-    
-    if(fatjets.at(0).DeltaR(closest_lep) < 0.8) lep1_in_ak8 = true;
-    if(fatjets.at(1).DeltaR(further_lep) < 0.8) lep2_in_ak8 = true;
-    
-    if(lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1);
-    else if(lep1_in_ak8 && !lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep;
-    else if(!lep1_in_ak8 && lep2_in_ak8) lljjjj = fatjets.at(0) + fatjets.at(1) + closest_lep;
-    else lljjjj = fatjets.at(0) + fatjets.at(1) + further_lep + closest_lep;
-  }
-  else return;
-  
-
-  bool CR1 = false, CR2 = false;
-  TString which_CR;
-  if(ll.M() < 150){
-    CR1 = true;
-    which_CR = "CR1_";
-    if(channel.Contains("DiEle")){
-      FillHist("signal_eff", 20.5, weight, 0., 40., 40);
-    }
-    else if(channel.Contains("DiMu")){
-      FillHist("signal_eff", 21.5, weight, 0., 40., 40);
-    }
-    else if(channel.Contains("EMu")){
-      FillHist("signal_eff", 22.5, weight, 0., 40., 40);
-    }
-    else return;
-  }
-  else return;
-
-  FillCLHist(hnpairmm, which_CR + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, 0);
-
 }
 
 
@@ -557,71 +410,45 @@ void HN_pair_all::CR_Z_mass(TString channel, bool trigger_pass, double current_w
 
   if(!trigger_pass) return;
   
+  // -- check N lepton condition.
   bool pass_N_lep = false;
+  std::vector<KLepton> Leptons_veto;
   std::vector<KLepton> Leptons;
-  if(channel.Contains("DiEle")){
-    if(N_electron == 2 && N_veto_ele == 2 && N_veto_muon == 0){
-      pass_N_lep =true;
-      Leptons.push_back(electrons.at(0));
-      Leptons.push_back(electrons.at(1));
-    }
-  }
-  else if(channel.Contains("DiMu")){
-    if(N_muon == 2 && N_veto_muon == 2 && N_veto_ele == 0){
-      pass_N_lep =true;
-      Leptons.push_back(muons.at(0));
-      Leptons.push_back(muons.at(1));
-    }
-  }
-  else if(channel.Contains("EMu")){
-    if(N_muon == 1 && N_veto_muon == 1 && N_electron == 1 && N_veto_ele == 1){
-      pass_N_lep =true;
-      if(electrons.at(0).Pt() > muons.at(0).Pt()){
-        Leptons.push_back(electrons.at(0));
-        Leptons.push_back(muons.at(0));
-      }
-      else{
-        Leptons.push_back(muons.at(0));
-        Leptons.push_back(electrons.at(0));
-      }
-    }
-  }
-  else pass_N_lep = false;
-  if(!pass_N_lep) return;
+  Leptons_veto.clear();
+  Leptons.clear();
+  for(unsigned int i = 0; i < electrons_veto.size(); i++)    Leptons_veto.push_back(electrons_veto.at(i));
+  for(unsigned int i = 0; i < muons_veto.size(); i++)    Leptons_veto.push_back(muons_veto.at(i));
+  for(unsigned int i = 0; i < electrons.size(); i++)    Leptons.push_back(electrons.at(i));
+  for(unsigned int i = 0; i < muons.size(); i++)    Leptons.push_back(muons.at(i));
   
+  if(Leptons.size() > 2) return;
+  
+  // -- return ! Pt(1st muon) > 60 GeV && Pt(2nd muon) > 20 GeV
   double Lep_1st_Pt, Lep_2nd_Pt;
-  Lep_1st_Pt = Leptons.at(0).Pt();
-  Lep_2nd_Pt = Leptons.at(1).Pt();
+  Lep_1st_Pt = Leptons_veto.at(0).Pt();
+  Lep_2nd_Pt = Leptons_veto.at(1).Pt();
+  
   if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
-
-  snu::KParticle ll = Leptons.at(0) + Leptons.at(1);
-  double M_Z = 91.2;
-  if(fabs( ll.M() - M_Z ) > 10) return;
-
-  if(channel.Contains("DiEle")){
-    FillHist("signal_eff", 23.5, weight, 0., 40., 40);
-  }
-  else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 24.5, weight, 0., 40., 40);
-  }
-  else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 25.5, weight, 0., 40., 40);
-  }
-  else return;
-
-
-  std::vector<snu::KJet> jets_pt40;
-  for(int i = 0; i < jets.size(); i++){
-    if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
-  }
-
-  int nbjet=0;
-  for(unsigned int ij=0; ij <jets_pt40.size(); ij++){
-    if( IsBTagged(jets_pt40.at(ij),   snu::KJet::CSVv2, snu::KJet::Medium, -1, 0))  nbjet++;
-  }
   
+  snu::KParticle ll = Leptons_veto.at(0) + Leptons_veto.at(1);
+  double M_ll = ll.M();
+  if(fabs(ll.M() - M_Z) > 10.) return;
   
-  FillCLHist(hnpairmm, "CR3_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
+  TString Region_str = "CR_Zmass_";
+  FillLeptonPlots(Leptons_veto, Region_str + channel, weight);
+  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, weight, 1000, 0., 1000.);
+
+  if(Leptons.size() == 2){
+    snu::KParticle ll_tight = Leptons.at(0) + Leptons.at(1);
+    double M_ll_tight = ll_tight.M();
+    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, weight, 1000, 0., 1000.);
+  }
+
+  vector<snu::KParticle> Ns = RecoPairN(Leptons, fatjets, jets);
+  if(Ns.size() != 2) return;
+    
+  snu::KParticle Zp = Ns.at(0) + Ns.at(1);
+  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
 
 }
 
@@ -632,59 +459,41 @@ void HN_pair_all::CR_ttbar_dom(TString channel, bool trigger_pass, double curren
   
   if(!trigger_pass) return;
 
+  // -- check N lepton condition.
   bool pass_N_lep = false;
+  std::vector<KLepton> Leptons_veto;
   std::vector<KLepton> Leptons;
-  if(channel.Contains("DiEle")){
-    if(N_electron == 2 && N_veto_ele == 2 && N_veto_muon == 0){
-      pass_N_lep =true;
-      Leptons.push_back(electrons.at(0));
-      Leptons.push_back(electrons.at(1));
-    }
-  }
-  else if(channel.Contains("DiMu")){
-    if(N_muon == 2 && N_veto_muon == 2 && N_veto_ele == 0){
-      pass_N_lep =true;
-      Leptons.push_back(muons.at(0));
-      Leptons.push_back(muons.at(1));
-    }
-  }
-  else if(channel.Contains("EMu")){
-    if(N_muon == 1 && N_veto_muon == 1 && N_electron == 1 && N_veto_ele == 1){
-      pass_N_lep =true;
-      if(electrons.at(0).Pt() > muons.at(0).Pt()){
-        Leptons.push_back(electrons.at(0));
-        Leptons.push_back(muons.at(0));
-      }
-      else{
-        Leptons.push_back(muons.at(0));
-        Leptons.push_back(electrons.at(0));
-      }
-    }
-  }
-  else pass_N_lep = false;
-  if(!pass_N_lep) return;
+  Leptons_veto.clear();
+  Leptons.clear();
+  for(unsigned int i = 0; i < electrons_veto.size(); i++)    Leptons_veto.push_back(electrons_veto.at(i));
+  for(unsigned int i = 0; i < muons_veto.size(); i++)    Leptons_veto.push_back(muons_veto.at(i));
+  for(unsigned int i = 0; i < electrons.size(); i++)    Leptons.push_back(electrons.at(i));
+  for(unsigned int i = 0; i < muons.size(); i++)    Leptons.push_back(muons.at(i));
 
-  double Lep_1st_Pt, Lep_2nd_Pt;
-  Lep_1st_Pt = Leptons.at(0).Pt();
-  Lep_2nd_Pt = Leptons.at(1).Pt();
-  if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
+  if(Leptons.size() > 2) return;
   
-  std::vector<snu::KJet> jets_pt40;
-  for(int i = 0; i < jets.size(); i++){
-    if(jets.at(i).Pt() > 40) jets_pt40.push_back(jets.at(i));
-  }
-    
-  if(jets_pt40.size() < 2) return;
+  // -- return ! Pt(1st muon) > 65 GeV && Pt(2nd muon) > 65 GeV
+  double Lep_1st_Pt, Lep_2nd_Pt;
+  Lep_1st_Pt = Leptons_veto.at(0).Pt();
+  Lep_2nd_Pt = Leptons_veto.at(1).Pt();
+  if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
+
+  snu::KParticle ll = Leptons_veto.at(0) + Leptons_veto.at(1);
+  double M_ll = ll.M();
+  if(ll.M() < 55.) return;
+  
+  if(jets.size() < 2) return;
+
   
   int nbjet=0;
-  for(unsigned int ij=0; ij < jets_pt40.size(); ij++){
-    if( IsBTagged(jets_pt40.at(ij),   snu::KJet::CSVv2, snu::KJet::Medium, -1, 0))  nbjet++;
+  for(unsigned int ij=0; ij < jets.size(); ij++){
+    if( IsBTagged(jets.at(ij),   snu::KJet::CSVv2, snu::KJet::Medium, -1, 0))  nbjet++;
   }
   if(nbjet < 1) return;
-
+  
   float MET = eventbase->GetEvent().PFMET();
   if(MET < 40) return;
-
+  
   // -- fill cutflow
   if(channel.Contains("DiEle")){
     FillHist("signal_eff", 26.5, weight, 0., 40., 40);
@@ -696,8 +505,22 @@ void HN_pair_all::CR_ttbar_dom(TString channel, bool trigger_pass, double curren
     FillHist("signal_eff", 28.5, weight, 0., 40., 40);
   }
   else return;
+
+  TString Region_str = "CR_ttbar_";
+  FillLeptonPlots(Leptons_veto, Region_str + channel, weight);
+  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, weight, 1000, 0., 1000.);
   
-  FillCLHist(hnpairmm, "CR4_" + channel, eventbase->GetEvent(), Leptons, N_electron, N_muon, jets_pt40, fatjets, current_weight, nbjet);
+  if(Leptons.size() == 2){
+    snu::KParticle ll_tight = Leptons.at(0) + Leptons.at(1);
+    double M_ll_tight = ll_tight.M();
+    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, weight, 1000, 0., 1000.);
+  }
+  
+  vector<snu::KParticle> Ns = RecoPairN(Leptons, fatjets, jets);
+  if(Ns.size() != 2) return;
+  
+  snu::KParticle Zp = Ns.at(0) + Ns.at(1);
+  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
   
 }
 

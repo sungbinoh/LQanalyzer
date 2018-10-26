@@ -24,6 +24,7 @@ class EventBase;
 #include "DataDrivenBackgrounds.h"
 #include "HNGenMatching.h"
 #include "KLepton.h"
+#define M_Z 91.1876
 
 
 class AnalyzerCore : public LQCycleBase {
