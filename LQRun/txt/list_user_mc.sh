@@ -124,3 +124,5 @@ declare -a tmp2=(
 
 declare -a new_list=('SingleTop_t' )
 declare -a new_list=('DY10to50' 'DY50plus' 'DY_pt_0to50' 'DY_pt_100to250' 'DY_pt_250to400' 'DY_pt_400to650' 'DY_pt_50to100' 'DY_pt_650toinf' )
+
+declare -a HN_pair_MC=('DY50plus' 'TTLL_powheg' 'WJets' 'WWTo2L2Nu' 'WZTo3LNu_powheg' 'ZZTo4L_powheg' 'SingleTop_s' 'SingleTbar_t' 'SingleTop_t' 'SingleTbar_tW' 'SingleTop_tW' 'ttZ' 'DY10to50' 'WpWpEWK' 'WpWpQCD' 'WWW' 'WWZ' 'WZZ' 'ZZZ')
