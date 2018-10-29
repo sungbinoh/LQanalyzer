@@ -299,9 +299,9 @@ void HN_pair_all::ExecuteEventFromSyst(std::vector<snu::KElectron> electron_all,
   else return;
 
   
-  SR(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
-  CR_Z_mass(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
-  CR_ttbar_dom(current_channel + syst_flag, mu50_pass, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
+  SR(current_channel + syst_flag, trig_pass_for_channel, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
+  CR_Z_mass(current_channel + syst_flag, trig_pass_for_channel, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
+  CR_ttbar_dom(current_channel + syst_flag, trig_pass_for_channel, current_weight, jets_lepveto, fatjets, electrons, electrons_veto, muons, muons_veto, N_electron, N_veto_ele, N_muon, N_veto_muon);
   
   return;
   
