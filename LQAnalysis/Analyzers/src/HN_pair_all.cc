@@ -287,14 +287,18 @@ void HN_pair_all::ExecuteEventFromSyst(std::vector<snu::KElectron> electron_all,
   if(N_veto_ele == 2 && N_veto_muon == 0){
     current_channel = "DiEle_";
     trig_pass_for_channel = diele_pass;
+    FillHist("signal_eff", 5.5, current_weight, 0., 40., 40);
   }
   else if(N_veto_muon == 2 && N_veto_ele == 0){
     current_channel = "DiMu_";
     trig_pass_for_channel = mu50_pass;
+    FillHist("signal_eff", 6.5, current_weight, 0., 40., 40);
+
   }
   else if(N_veto_muon == 1 && N_veto_ele == 1){
     current_channel = "EMu_";
     trig_pass_for_channel = mu50_pass;
+    FillHist("signal_eff", 7.5, current_weight, 0., 40., 40);
   }
   else return;
 
@@ -316,6 +320,16 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   // -- Trigger pass
   if(!trigger_pass) return;
   
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 30.5, current_weight, 0., 40., 40);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 31.5, current_weight, 0., 40., 40);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 32.5, current_weight, 0., 40., 40);
+  }
+  else return;
   
   // -- check N lepton condition.
   bool pass_N_lep = false;
@@ -330,6 +344,16 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   
   if(Leptons.size() > 2) return;
   
+  if(channel.Contains("DiEle")){
+    FillHist("signal_eff", 33.5, current_weight, 0., 40., 40);
+  }
+  else if(channel.Contains("DiMu")){
+    FillHist("signal_eff", 34.5, current_weight, 0., 40., 40);
+  }
+  else if(channel.Contains("EMu")){
+    FillHist("signal_eff", 35.5, current_weight, 0., 40., 40);
+  }
+  else return;
   
   // -- return ! Pt(1st muon) > 60 GeV && Pt(2nd muon) > 20 GeV
   double Lep_1st_Pt, Lep_2nd_Pt;
@@ -339,13 +363,13 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   if(Lep_1st_Pt < 65 || Lep_2nd_Pt< 65) return;
   
   if(channel.Contains("DiEle")){
-    FillHist("signal_eff", 8.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 8.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 9.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 9.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 10.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 10.5, current_weight, 0., 40., 40);
   }
   else return;
 
@@ -356,13 +380,13 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   snu::KParticle ll = Leptons_veto.at(0) + Leptons_veto.at(1);
   if(ll.M() < 150) return;
   if(channel.Contains("DiEle")){
-    FillHist("signal_eff",11.5, weight, 0., 40., 40);
+    FillHist("signal_eff",11.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 12.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 12.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 13.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 13.5, current_weight, 0., 40., 40);
   }
   else return;
   
@@ -370,13 +394,13 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   if(Ns.size() != 2) return;
     
   if(channel.Contains("DiEle")){
-    FillHist("signal_eff", 14.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 14.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 15.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 15.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 16.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 16.5, current_weight, 0., 40., 40);
   }
   else return;
   
@@ -385,21 +409,21 @@ void HN_pair_all::SR(TString channel, bool trigger_pass, double current_weight, 
   if(Zp.M() < 300) return;
     
   if(channel.Contains("DiEle")){
-    FillHist("signal_eff", 17.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 17.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 18.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 18.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 19.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 19.5, current_weight, 0., 40., 40);
   }
   else return;
   TString Region_str = "SR_";
 
-  FillLeptonPlots(Leptons, Region_str + channel, weight);
-  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
-  JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(0).M(), weight, 5000, 0., 5000.);
-  JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(1).M(), weight, 5000, 0., 5000.);
+  FillLeptonPlots(Leptons, Region_str + channel, current_weight);
+  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), current_weight, 6000, 0., 6000.);
+  JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(0).M(), current_weight, 5000, 0., 5000.);
+  JSFillHist(Region_str + channel, "mN_" + Region_str + channel, Ns.at(1).M(), current_weight, 5000, 0., 5000.);
   
 }
 
@@ -435,20 +459,20 @@ void HN_pair_all::CR_Z_mass(TString channel, bool trigger_pass, double current_w
   if(fabs(ll.M() - M_Z) > 10.) return;
   
   TString Region_str = "CR_Zmass_";
-  FillLeptonPlots(Leptons_veto, Region_str + channel, weight);
-  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, weight, 1000, 0., 1000.);
+  FillLeptonPlots(Leptons_veto, Region_str + channel, current_weight);
+  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, current_weight, 1000, 0., 1000.);
 
   if(Leptons.size() == 2){
     snu::KParticle ll_tight = Leptons.at(0) + Leptons.at(1);
     double M_ll_tight = ll_tight.M();
-    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, weight, 1000, 0., 1000.);
+    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, current_weight, 1000, 0., 1000.);
   }
 
   vector<snu::KParticle> Ns = RecoPairN(Leptons, fatjets, jets);
   if(Ns.size() != 2) return;
     
   snu::KParticle Zp = Ns.at(0) + Ns.at(1);
-  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
+  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), current_weight, 6000, 0., 6000.);
 
 }
 
@@ -496,31 +520,31 @@ void HN_pair_all::CR_ttbar_dom(TString channel, bool trigger_pass, double curren
   
   // -- fill cutflow
   if(channel.Contains("DiEle")){
-    FillHist("signal_eff", 26.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 26.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("DiMu")){
-    FillHist("signal_eff", 27.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 27.5, current_weight, 0., 40., 40);
   }
   else if(channel.Contains("EMu")){
-    FillHist("signal_eff", 28.5, weight, 0., 40., 40);
+    FillHist("signal_eff", 28.5, current_weight, 0., 40., 40);
   }
   else return;
 
   TString Region_str = "CR_ttbar_";
-  FillLeptonPlots(Leptons_veto, Region_str + channel, weight);
-  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, weight, 1000, 0., 1000.);
+  FillLeptonPlots(Leptons_veto, Region_str + channel, current_weight);
+  JSFillHist(Region_str + channel, "mll_" + Region_str + channel, M_ll, current_weight, 1000, 0., 1000.);
   
   if(Leptons.size() == 2){
     snu::KParticle ll_tight = Leptons.at(0) + Leptons.at(1);
     double M_ll_tight = ll_tight.M();
-    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, weight, 1000, 0., 1000.);
+    JSFillHist(Region_str + channel, "mll_tight_" + Region_str + channel, M_ll_tight, current_weight, 1000, 0., 1000.);
   }
   
   vector<snu::KParticle> Ns = RecoPairN(Leptons, fatjets, jets);
   if(Ns.size() != 2) return;
   
   snu::KParticle Zp = Ns.at(0) + Ns.at(1);
-  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), weight, 6000, 0., 6000.);
+  JSFillHist(Region_str + channel, "mZp_" + Region_str + channel, Zp.M(), current_weight, 6000, 0., 6000.);
   
 }
 
